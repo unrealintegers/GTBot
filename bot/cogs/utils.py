@@ -35,7 +35,7 @@ class Hero:
 
 
 class HeroMatcher:
-    with open("heroes.txt") as f:
+    with open("data/heroes.txt") as f:
         h = f.read().split('\n')
 
     heroes = list(map(lambda x: Hero(*x.split(',')), h))
