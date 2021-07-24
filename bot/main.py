@@ -1,4 +1,5 @@
 import discord
+import os
 from discord.ext import commands
 from discord_slash import SlashCommand
 from discord_slash.utils.manage_commands import *
@@ -31,8 +32,11 @@ class Bot:
         self.bot.add_listener(self.on_disconnect)
 
     def run(self):
-        with open("token.txt") as tkf:
-            self.bot.run(tkf.read())
+        try:
+            with open("token.txt") as tkf:
+                self.bot.run(tkf.read())
+        except FileNotFoundError:
+            self.bot.run(os.getenv("BOT_TOKEN"))
 
     async def on_ready(self):
         print("Connected")
