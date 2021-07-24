@@ -1,5 +1,4 @@
 import discord
-# import logging as py_logging
 from discord.ext import commands
 from discord_slash import SlashCommand
 from discord_slash.utils.manage_commands import *

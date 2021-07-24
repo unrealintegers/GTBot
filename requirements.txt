@@ -1,0 +1,9 @@
+discord.py
+discord-py-slash-command
+PyYAML
+pytz
+aiocron
+dateparser
+fuzzywuzzy
+pandas
+requests
