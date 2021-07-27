@@ -46,9 +46,7 @@ class Bot:
 
         self.bot.add_cog(channels.ChannelSlash(self))
         self.bot.add_cog(coop.CoopSlash(self))
-        self.bot.add_cog(members.MemberCommands(self))
         self.bot.add_cog(purge.PurgeCommand(self))
-        self.bot.add_cog(raid.RaidCommands(self))
         self.bot.add_cog(reaction.ReactionListener(self))
         self.bot.add_cog(roll.RollCommand(self))
         self.bot.add_cog(weather.WeatherCommand(self))
