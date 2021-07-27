@@ -67,6 +67,9 @@ class Bot:
             cmd.allowed_guild_ids = [x for x in cmd.allowed_guild_ids
                                      if x in guild_ids]
 
+            if name not in self.slash.subcommands:
+                continue
+
             for subcmd in self.slash.subcommands[name].values():
                 subcmd.allowed_guild_ids = [x for x in subcmd.allowed_guild_ids
                                             if x in guild_ids]
