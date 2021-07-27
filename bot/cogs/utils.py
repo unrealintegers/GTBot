@@ -17,7 +17,7 @@ def discord_escape(msg):
 
 def convert_args(args):
     args = ['-_'] + list(args)
-    tree = defaultdict(lambda: list)
+    tree = defaultdict(list)
     parents = [i for i in range(len(args)) if args[i][0] == '-']
     parents.append(len(args))  # Add upper search limit
     for i in range(len(parents) - 1):
