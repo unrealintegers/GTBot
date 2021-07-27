@@ -12,26 +12,32 @@ class CogCommand(commands.Cog):
     async def enable_cmd(self, ctx, cmd):
         with DatabaseConnection() as db:
             db.cur.execute(f"INSERT INTO slash_guilds (slash_id, guild_id) "
-                           f"SELECT slash.id, {ctx.guild.id} "
-                           f"FROM slash "
-                           f"WHERE slash.name = '{cmd}'")
+                           f"SELECT s.id, {ctx.guild.id} "
+                           f"FROM slashes AS s "
+                           f"WHERE s.name = '{cmd}'")
 
-        self.bot.slash.commands[cmd].allowed_guild_ids += ctx.guild.id
-        for subcmd in self.bot.slash.subcommands[cmd]:
-            subcmd.allowed_guild_ids += ctx.guild.id
+        if ctx.guild.id not in self.bot.slash.commands[cmd].allowed_guild_ids:
+            self.bot.slash.commands[cmd].allowed_guild_ids.append(ctx.guild.id)
+        for subcmd in self.bot.slash.subcommands[cmd].values():
+            if ctx.guild.id not in subcmd.allowed_guild_ids:
+                subcmd.allowed_guild_ids.append(ctx.guild.id)
 
+        await self.bot.slash.sync_all_commands()
         await ctx.message.delete()
 
     @commands.command()
     @commands.is_owner()
     async def disable_cmd(self, ctx, cmd):
         with DatabaseConnection() as db:
-            db.cur.execute(f"DELETE sg FROM slash_guilds sg "
-                           f"INNER JOIN slash s ON sg.slash_id = s.id "
+            db.cur.execute(f"DELETE FROM slash_guilds AS sg "
+                           f"USING slashes AS s WHERE s.id = sg.slash_id "
                            f"AND s.name = '{cmd}'")
 
-        self.bot.slash.commands[cmd].allowed_guild_ids.remove(ctx.guild.id)
-        for subcmd in self.bot.slash.subcommands[cmd]:
-            subcmd.allowed_guild_ids.remove(ctx.guild.id)
+        if ctx.guild.id in self.bot.slash.commands[cmd].allowed_guild_ids:
+            self.bot.slash.commands[cmd].allowed_guild_ids.remove(ctx.guild.id)
+        for subcmd in self.bot.slash.subcommands[cmd].values():
+            if ctx.guild.id in subcmd.allowed_guild_ids:
+                subcmd.allowed_guild_ids.remove(ctx.guild.id)
 
+        await self.bot.slash.sync_all_commands()
         await ctx.message.delete()
