@@ -3,7 +3,6 @@ import discord
 import os
 import psycopg2 as pg
 import urllib.parse as up
-from discord.ext.commands import Cog
 from collections import defaultdict
 from datetime import datetime as dt
 

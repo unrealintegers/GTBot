@@ -46,6 +46,7 @@ class Bot:
 
         self.bot.add_cog(channels.ChannelSlash(self))
         self.bot.add_cog(coop.CoopSlash(self))
+        self.bot.add_cog(cogs.CogCommand(self))
         self.bot.add_cog(purge.PurgeCommand(self))
         self.bot.add_cog(reaction.ReactionListener(self))
         self.bot.add_cog(roll.RollCommand(self))
