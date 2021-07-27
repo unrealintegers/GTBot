@@ -60,6 +60,16 @@ class Bot:
         self.bot.add_cog(vh)
         await vh.init_vegehints()
 
+        # Only select guilds which bot is in
+        guild_ids = [g.id for g in self.bot.guilds]
+        for name, cmd in self.slash.commands.items():
+            cmd.allowed_guild_ids = [x for x in cmd.allowed_guild_ids
+                                     if x in guild_ids]
+
+            for subcmd in self.slash.subcommands[name].values():
+                subcmd.allowed_guild_ids = [x for x in subcmd.allowed_guild_ids
+                                            if x in guild_ids]
+
         await self.slash.sync_all_commands()
 
     async def on_resumed(self):
