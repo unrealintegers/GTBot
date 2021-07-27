@@ -9,12 +9,11 @@ from .utils import HeroMatcher, DatabaseConnection, convert_args
 
 
 class CoopSlash(commands.Cog):
-    with DatabaseConnection() as db:
-        discord_ids = db.fetch_flatten(f"""
-            SELECT guild_id FROM slash_guilds 
-            INNER JOIN slashes ON slash_guilds.slash_id = slashes.id 
-            AND slashes.name = 'coop'
-        """)
+    discord_ids = DatabaseConnection.fetch_flatten(f"""
+        SELECT guild_id FROM slash_guilds 
+        INNER JOIN slashes ON slash_guilds.slash_id = slashes.id 
+        AND slashes.name = 'coop'
+    """)
 
     def __init__(self, bot):
         self.bot = bot
@@ -61,9 +60,8 @@ class CoopSlash(commands.Cog):
         await ctx.defer(hidden=True)
 
         try:
-            with DatabaseConnection() as db:
-                db.cur.execute(f"INSERT INTO heroes_owned "
-                               f"VALUES ({ctx.author_id}, {hero.id})")
+            DatabaseConnection.execute(f"INSERT INTO heroes_owned "
+                                       f"VALUES ({ctx.author_id}, {hero.id})")
         except pg.errors.UniqueViolation:
             await ctx.send(f"{hero.gamename} is already "
                            f"in your list of heroes!", hidden=True)
@@ -88,19 +86,18 @@ class CoopSlash(commands.Cog):
 
         await ctx.defer(hidden=True)
 
-        with DatabaseConnection() as db:
-            db.cur.execute(f"SELECT FROM heroes_owned"
-                           f"WHERE id={ctx.author_id} "
-                           f"AND hero={hero.id}")
-            if db.cur.fetchall():
-                db.cur.execute(f"REMOVE FROM heroes_owned"
-                               f"WHERE id={ctx.author_id} "
-                               f"AND hero={hero.id}")
-                await ctx.send(f"Removed {hero.gamename} from "
-                               "your list of heroes!", hidden=True)
-            else:
-                await ctx.send(f"{hero.gamename} is not in your list of "
-                               f"heroes!", hidden=True)
+        if DatabaseConnection.fetch(f"""
+            SELECT FROM heroes_owned 
+            WHERE id={ctx.author_id} AND hero={hero.id}
+        """):
+            DatabaseConnection.execute(f"REMOVE FROM heroes_owned"
+                                       f"WHERE id={ctx.author_id} "
+                                       f"AND hero={hero.id}")
+            await ctx.send(f"Removed {hero.gamename} from "
+                           "your list of heroes!", hidden=True)
+        else:
+            await ctx.send(f"{hero.gamename} is not in your list of "
+                           f"heroes!", hidden=True)
 
     @cog_ext.cog_subcommand(guild_ids=discord_ids,
                             base="coop", name="list",
@@ -117,9 +114,9 @@ class CoopSlash(commands.Cog):
 
         await ctx.defer()
 
-        with DatabaseConnection() as db:
-            heroes = db.fetch_flatten(f"SELECT hero FROM heroes_owned "
-                                      f"WHERE id={user.id}")
+        heroes = DatabaseConnection.fetch_flatten(f"""
+            SELECT hero FROM heroes_owned WHERE id={user.id}
+        """)
 
         # Converts to list of names
         heroes = map(lambda h: HeroMatcher.get(h).gamename, heroes)
@@ -152,9 +149,9 @@ class CoopSlash(commands.Cog):
 
         await ctx.defer()
 
-        with DatabaseConnection() as db:
-            discord_ids = db.fetch_flatten(f"SELECT id FROM heroes_owned "
-                                           f"WHERE hero={hero.id}")
+        discord_ids = DatabaseConnection.fetch_flatten(f"""
+            SELECT id FROM heroes_owned WHERE hero={hero.id}
+        """)
 
         embed = discord.Embed(color=0x99ff24,
                               title=f"Users of {hero.gamename}")
@@ -170,19 +167,19 @@ class CoopSlash(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    # @commands.Cog.listener()
-    # async def on_message(self, msg: discord.Message):
-    #     if msg.channel.id == 808953170415058944:
-    #         if re.search(r"[A-Z0-9]{5}", msg.content):
-    #
-    #             if self._last_author != msg.author.id:
-    #                 if time.time() - self._last_time < 300:  # 5 min
-    #                     backup = self.bot.Vege.get_channel(835331220438646794)
-    #
-    #                     # If in archived then move
-    #                     if backup.category_id == 824288408355602442:
-    #                         cc = self.bot.Vege.get_channel(808953170415058944)
-    #                         await self.backup.enable(cc.position + 1)
-    #
-    #             self._last_author = msg.author.id
-    #             self._last_time = time.time()
+# @commands.Cog.listener()
+# async def on_message(self, msg: discord.Message):
+#     if msg.channel.id == 808953170415058944:
+#         if re.search(r"[A-Z0-9]{5}", msg.content):
+#
+#             if self._last_author != msg.author.id:
+#                 if time.time() - self._last_time < 300:  # 5 min
+#                     backup = self.bot.Vege.get_channel(835331220438646794)
+#
+#                     # If in archived then move
+#                     if backup.category_id == 824288408355602442:
+#                         cc = self.bot.Vege.get_channel(808953170415058944)
+#                         await self.backup.enable(cc.position + 1)
+#
+#             self._last_author = msg.author.id
+#             self._last_time = time.time()

@@ -28,33 +28,57 @@ def convert_args(args):
 class DatabaseConnection:
     url = up.urlparse(os.getenv("ELEPHANTSQL_URL"))
 
-    def __init__(self, autocommit=True):
-        self.autocommit = autocommit
+    conn = pg.connect(
+        database=url.path[1:],
+        user=url.username,
+        password=url.password,
+        host=url.hostname,
+        port=url.port
+    )
+    conn.autocommit = True
+    cur = conn.cursor()
+
+    @classmethod
+    def connect(cls):
+        if cls.conn is None or cls.conn.closed:
+            cls.conn = pg.connect(
+                database=cls.url.path[1:],
+                user=cls.url.username,
+                password=cls.url.password,
+                host=cls.url.hostname,
+                port=cls.url.port
+            )
+            cls.conn.autocommit = True
+            cls.cur = cls.conn.cursor()
+
+        return cls.conn, cls.cur
 
     def __enter__(self):
-        self.conn = pg.connect(
-            database=self.url.path[1:],
-            user=self.url.username,
-            password=self.url.password,
-            host=self.url.hostname,
-            port=self.url.port
-        )
-        self.conn.autocommit = self.autocommit
-
-        self.cur = self.conn.cursor()
-
-        return self
+        conn, cur = self.connect()
+        return conn, cur
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.cur.close()
-        self.conn.close()
-
         return False
 
-    def fetch_flatten(self, command):
-        self.cur.execute(command)
+    @classmethod
+    def execute(cls, command):
+        cls.connect()
+        cls.cur.execute(command)
+
+    @classmethod
+    def fetch(cls, command):
+        cls.connect()
+        cls.cur.execute(command)
+
+        return cls.cur.fetchall()
+
+    @classmethod
+    def fetch_flatten(cls, command):
+        cls.connect()
+        cls.cur.execute(command)
+
         # [(3,), (11,), ..., (71,)] => [3, 11, ..., 71]
-        return sum(map(list, self.cur.fetchall()), [])
+        return sum(map(list, cls.cur.fetchall()), [])
 
 
 class Hero:
@@ -72,9 +96,7 @@ class Hero:
 
 
 class HeroMatcher:
-    with DatabaseConnection() as db:
-        db.cur.execute(f"SELECT * FROM hero_names")
-        heroes = db.cur.fetchall()
+    heroes = DatabaseConnection.fetch(f"SELECT * FROM hero_names")
 
     # 2-way mapping between id and hero name
     heroes = {a: Hero(a, *b) for (a, *b) in heroes}

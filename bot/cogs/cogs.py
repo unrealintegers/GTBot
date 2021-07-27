@@ -10,11 +10,12 @@ class CogCommand(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def enable_cmd(self, ctx, cmd):
-        with DatabaseConnection() as db:
-            db.cur.execute(f"INSERT INTO slash_guilds (slash_id, guild_id) "
-                           f"SELECT s.id, {ctx.guild.id} "
-                           f"FROM slashes AS s "
-                           f"WHERE s.name = '{cmd}'")
+        DatabaseConnection.execute(f"""
+            INSERT INTO slash_guilds (slash_id, guild_id) 
+            SELECT s.id, {ctx.guild.id} 
+            FROM slashes AS s 
+            WHERE s.name = '{cmd}'
+        """)
 
         if ctx.guild.id not in self.bot.slash.commands[cmd].allowed_guild_ids:
             self.bot.slash.commands[cmd].allowed_guild_ids.append(ctx.guild.id)
@@ -28,10 +29,11 @@ class CogCommand(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def disable_cmd(self, ctx, cmd):
-        with DatabaseConnection() as db:
-            db.cur.execute(f"DELETE FROM slash_guilds AS sg "
-                           f"USING slashes AS s WHERE s.id = sg.slash_id "
-                           f"AND s.name = '{cmd}'")
+        DatabaseConnection.execute(f"""
+            DELETE FROM slash_guilds AS sg 
+            USING slashes AS s WHERE s.id = sg.slash_id 
+            AND s.name = '{cmd}'
+        """)
 
         if ctx.guild.id in self.bot.slash.commands[cmd].allowed_guild_ids:
             self.bot.slash.commands[cmd].allowed_guild_ids.remove(ctx.guild.id)
