@@ -32,11 +32,7 @@ class Bot:
         self.bot.add_listener(self.on_disconnect)
 
     def run(self):
-        try:
-            with open("token.txt") as tkf:
-                self.bot.run(tkf.read())
-        except FileNotFoundError:
-            self.bot.run(os.getenv("BOT_TOKEN"))
+        self.bot.run(os.getenv("BOT_TOKEN"))
 
     async def on_ready(self):
         print("Connected")
