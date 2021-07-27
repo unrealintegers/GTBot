@@ -56,7 +56,7 @@ class Stamina(commands.Cog):
                                f"`{time.strftime(self.DATE_FORMAT)}`",
                                hidden=True)
             else:
-                await ctx.send(f"You will have **72** stamina at "
+                await ctx.send(f"You will have **76** stamina at "
                                f"`{time.strftime(self.DATE_FORMAT)}`. "
-                               f"{total - 72:.1f} stamina will be wasted!",
+                               f"{total - 76:.1f} stamina will be wasted!",
                                hidden=True)
