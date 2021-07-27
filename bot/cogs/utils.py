@@ -1,46 +1,93 @@
 import asyncio
 import discord
+import os
+import psycopg2 as pg
+import urllib.parse as up
+from discord.ext.commands import Cog
 from collections import defaultdict
 from datetime import datetime as dt
 
+up.uses_netloc.append("postgres")
+
 
 def discord_escape(msg):
-    return msg.replace("_", r"\_").replace("*", r"\*")\
+    return msg.replace("_", r"\_").replace("*", r"\*") \
         .replace("`", r"\`").replace("@", "@\u200B").replace("~", r"\~")
 
 
 def convert_args(args):
     args = ['-_'] + list(args)
-    tree = defaultdict(lambda: None)
+    tree = defaultdict(lambda: list)
     parents = [i for i in range(len(args)) if args[i][0] == '-']
     parents.append(len(args))  # Add upper search limit
     for i in range(len(parents) - 1):
         arg = ' '.join(args[parents[i] + 1: parents[i + 1]])
-        if args[parents[i]][1:] in tree:
-            tree[args[parents[i]][1:]].append(arg)
-        else:
-            tree[args[parents[i]][1:]] = [arg]
+        tree[args[parents[i]][1:]].append(arg)
     return tree
 
 
+class DatabaseConnection:
+    url = up.urlparse(os.getenv("ELEPHANTSQL_URL"))
+
+    def __init__(self, autocommit=True):
+        self.autocommit = autocommit
+
+    def __enter__(self):
+        self.conn = pg.connect(
+            database=self.url.path[1:],
+            user=self.url.username,
+            password=self.url.password,
+            host=self.url.hostname,
+            port=self.url.port
+        )
+        self.conn.autocommit = self.autocommit
+
+        self.cur = self.conn.cursor()
+
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.cur.close()
+        self.conn.close()
+
+        return False
+
+    def fetch_flatten(self, command):
+        self.cur.execute(command)
+        # [(3,), (11,), ..., (71,)] => [3, 11, ..., 71]
+        return sum(map(list, self.cur.fetchall()), [])
+
+
 class Hero:
-    def __init__(self, title, name):
+    def __init__(self, hero_id, title, name, emoji_id):
+        self.id = hero_id
+        self.emoji_id = emoji_id
+
         self.gamename = f"{title} {name}".strip()
         title = title.lower()
         name = name.lower()
         self.name = name
-        self.fullname = f"{title} {name}".strip()
+        self.fullname = f"{title} {name}".strip()  # = gamename.lower()
         self.tokens = set(self.fullname.split())
         self.initials = ''.join(map(lambda x: x[0], self.fullname.split()))
 
 
 class HeroMatcher:
-    with open("data/heroes.txt") as f:
-        h = f.read().split('\n')
+    with DatabaseConnection() as db:
+        db.cur.execute(f"SELECT * FROM hero_names")
+        heroes = db.cur.fetchall()
 
-    heroes = list(map(lambda x: Hero(*x.split(',')), h))
+    # 2-way mapping between id and hero name
+    heroes = {a: Hero(a, *b) for (a, *b) in heroes}
 
     members = {}  # member ID -> channel ID
+
+    @classmethod
+    def get(cls, hero_id):
+        try:
+            return cls.heroes[hero_id]
+        except KeyError:
+            return None
 
     @classmethod
     def match(cls, txt):
@@ -48,7 +95,7 @@ class HeroMatcher:
         if ' ' not in txt:
             # Match hero name
             candidates = []
-            for hero in cls.heroes:
+            for hero in cls.heroes.values():
                 if hero.name.startswith(txt):
                     candidates.append(hero)
 
@@ -58,7 +105,7 @@ class HeroMatcher:
                 raise ValueError("Too many heroes found!")
 
             # Match initials
-            for hero in cls.heroes:
+            for hero in cls.heroes.values():
                 if hero.initials == txt:
                     candidates.append(hero)
 
@@ -72,7 +119,7 @@ class HeroMatcher:
         else:
             words = set(txt.split())
             candidates = []
-            for hero in cls.heroes:
+            for hero in cls.heroes.values():
                 if words.issubset(hero.tokens):
                     candidates.append(hero)
 
@@ -144,8 +191,3 @@ class BackupChannel:
 
         # If not, check again later
         asyncio.create_task(self.check_activity())
-
-
-class ChannelManager:
-    def __init__(self):
-        pass
