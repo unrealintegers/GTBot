@@ -45,12 +45,6 @@ class Logging:
             content = discord_escape(msg.content)
             member = msg.author
 
-            async for al in msg.guild.audit_logs(
-                    limit=5, after=dt.utcnow() - timedelta(seconds=10),
-                    action=AuditLogAction.message_delete
-            ):
-                print(al)
-
             embed = Embed(colour=0x12ffc8, description=content)
             embed.set_footer(text=dt.utcnow().strftime("%Y-%m-%d %H:%M:%S"))
             embed.set_author(name=f"Message by {member.display_name} was "
