@@ -10,6 +10,5 @@ __all__ = (
     "purge",
     "reaction",
     "roll",
-    "vegehints",
-    "weather"
+    "vegehints"
 )

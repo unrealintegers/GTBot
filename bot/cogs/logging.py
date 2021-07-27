@@ -1,7 +1,5 @@
-import discord
 from datetime import datetime as dt
-from datetime import timedelta
-from discord import Member, Embed, TextChannel, Message, AuditLogAction
+from discord import Member, Embed, TextChannel, Message
 from discord import HTTPException, Forbidden, NotFound
 from discord_slash.context import SlashContext
 
