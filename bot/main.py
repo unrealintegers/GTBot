@@ -50,7 +50,6 @@ class Bot:
         self.bot.add_cog(purge.PurgeCommand(self))
         self.bot.add_cog(reaction.ReactionListener(self))
         self.bot.add_cog(roll.RollCommand(self))
-        self.bot.add_cog(weather.WeatherCommand(self))
 
         vh = vegehints.Vegehints(bot)
         cron.Cron(bot)
