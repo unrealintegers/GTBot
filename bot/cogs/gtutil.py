@@ -60,3 +60,26 @@ class Stamina(commands.Cog):
                                f"`{time.strftime(self.DATE_FORMAT)}`. "
                                f"{total - 76:.1f} stamina will be wasted!",
                                hidden=True)
+
+
+class WeekCheck(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+        self.bot.bot.add_cog(self)
+
+    @cog_slash(
+        name="weekcheck",
+        description="Checks what week this is.",
+        options=[]
+    )
+    async def weekcheck(self, ctx: SlashContext):
+        start_date = dt(2021, 7, 25, 14, 0, 0)
+        week_seconds = 7 * 24 * 60 * 60
+
+        weeks = (dt.utcnow() - start_date).total_seconds() // week_seconds
+
+        if weeks % 2 == 0:
+            await ctx.send(f"Arena (Red) Week", hidden=True)
+        else:
+            await ctx.send(f"Co-op (Green) Week", hidden=True)

@@ -43,6 +43,7 @@ class Bot:
         general.Evaluate(bot)
         general.Reminder(bot)
         gtutil.Stamina(bot)
+        gtutil.WeekCheck(bot)
 
         self.bot.add_cog(channels.ChannelSlash(self))
         self.bot.add_cog(coop.CoopSlash(self))
