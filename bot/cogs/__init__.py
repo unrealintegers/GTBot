@@ -1,4 +1,5 @@
 __all__ = (
+    "admin",
     "channels",
     "cogs",
     "coop",
@@ -6,7 +7,6 @@ __all__ = (
     "general",
     "gtutil",
     "logging",
-    "purge",
     "reaction",
     "vegehints"
 )

@@ -1,6 +1,5 @@
 import aiocron
 import asyncio
-import io
 import json
 from collections import defaultdict
 from dateparser import parse as parsedate
@@ -8,55 +7,9 @@ from datetime import datetime as dt
 from datetime import timedelta
 from discord import Member, File
 from discord.ext import commands
-# from discord.utils import escape_markdown
 from discord_slash import SlashContext
 from discord_slash import cog_ext
 from discord_slash.utils.manage_commands import create_option
-
-
-class Evaluate(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-
-        self.result = None
-
-        self.bot.bot.add_cog(self)
-
-    @cog_ext.cog_slash(
-        name="eval",
-        description="evaluate",
-        options=[
-            create_option(
-                name='command',
-                description='What you want to do',
-                option_type=str,
-                required=False
-            ),
-        ]
-    )
-    async def _eval(self, ctx: SlashContext, command: str):
-        if ctx.author.id not in [330509305663193091, 475440146221760512]:
-            await ctx.send("What do you think you're doing?", hidden=True)
-            return
-
-        hidden = (command[0] == "&")
-        if hidden:
-            command = command[1:]
-
-        if command[0] == command[-1] == '`':
-            command = command[1:-1]
-
-        if command.startswith("await "):
-            command = command[6:]
-            self.result = str(await eval(command))
-        else:
-            self.result = str(eval(command))
-
-        if len(self.result) > 2000:
-            fp = io.BytesIO(self.result.encode('utf-8'))
-            await ctx.send(File(fp, "output.txt"))
-        else:
-            await ctx.send(self.result, hidden=hidden)
 
 
 class Reminder(commands.Cog):

@@ -27,28 +27,28 @@ class Bot:
     async def on_ready(self):
         print("Connected")
 
-        self.Vege = self.bot.get_guild(762888327161708615)
+        # self.Vege = self.bot.get_guild(762888327161708615)
 
         general.Impersonation(bot)
-        general.Evaluate(bot)
-        general.Reminder(bot)
+        admin.Evaluate(bot)
+        admin.PurgeCommand(bot)
+        # general.Reminder(bot)
         gtutil.Stamina(bot)
         gtutil.WeekCheck(bot)
 
-        self.bot.add_cog(channels.ChannelSlash(self))
+        # self.bot.add_cog(channels.ChannelSlash(self))
         self.bot.add_cog(coop.CoopSlash(self))
         self.bot.add_cog(cogs.CogCommand(self))
-        self.bot.add_cog(purge.PurgeCommand(self))
         self.bot.add_cog(reaction.ReactionListener(self))
 
-        vh = vegehints.Vegehints(bot)
-        cron.Cron(bot)
+        # vh = vegehints.Vegehints(bot)
+        # cron.Cron(bot)
         logging.Logging(bot)
 
         # discord_log = logging.Logging(bot)
 
-        self.bot.add_cog(vh)
-        await vh.init_vegehints()
+        # self.bot.add_cog(vh)
+        # await vh.init_vegehints()
 
         # Only select guilds which bot is in
         guild_ids = [g.id for g in self.bot.guilds]
