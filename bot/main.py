@@ -32,23 +32,23 @@ class Bot:
         general.Impersonation(bot)
         admin.Evaluate(bot)
         admin.PurgeCommand(bot)
-        # general.Reminder(bot)
+        general.Reminder(bot)
         gtutil.Stamina(bot)
         gtutil.WeekCheck(bot)
 
-        # self.bot.add_cog(channels.ChannelSlash(self))
+        self.bot.add_cog(channels.ChannelSlash(self))
         self.bot.add_cog(coop.CoopSlash(self))
         self.bot.add_cog(cogs.CogCommand(self))
         self.bot.add_cog(reaction.ReactionListener(self))
 
-        # vh = vegehints.Vegehints(bot)
-        # cron.Cron(bot)
+        vh = vegehints.Vegehints(bot)
+        cron.Cron(bot)
         logging.Logging(bot)
 
-        # discord_log = logging.Logging(bot)
+        discord_log = logging.Logging(bot)
 
-        # self.bot.add_cog(vh)
-        # await vh.init_vegehints()
+        self.bot.add_cog(vh)
+        await vh.init_vegehints()
 
         # Only select guilds which bot is in
         guild_ids = [g.id for g in self.bot.guilds]
