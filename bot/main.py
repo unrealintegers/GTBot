@@ -2,18 +2,8 @@ import discord
 import os
 from discord.ext import commands
 from discord_slash import SlashCommand
-from discord_slash.utils.manage_commands import *
 
 from cogs import *
-
-
-# logger = py_logging.getLogger('discord')
-# logger.setLevel(py_logging.WARNING)
-# handler = py_logging.FileHandler(filename='discord.log', encoding='utf-8',
-#                                  mode='w')
-# handler.setFormatter(
-#     py_logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-# logger.addHandler(handler)
 
 
 class Bot:
@@ -50,7 +40,6 @@ class Bot:
         self.bot.add_cog(cogs.CogCommand(self))
         self.bot.add_cog(purge.PurgeCommand(self))
         self.bot.add_cog(reaction.ReactionListener(self))
-        self.bot.add_cog(roll.RollCommand(self))
 
         vh = vegehints.Vegehints(bot)
         cron.Cron(bot)
@@ -78,8 +67,6 @@ class Bot:
 
     async def on_resumed(self):
         print("Reconnected")
-        asyncio.create_task(self.bot.get_cog("CoopSlash")
-                            .backup.check_activity())
 
     async def on_member_join(self, member):
         if member.guild.id == 762888327161708615:

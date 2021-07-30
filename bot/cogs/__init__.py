@@ -1,6 +1,5 @@
 __all__ = (
     "channels",
-    "checks",
     "cogs",
     "coop",
     "cron",
@@ -9,6 +8,5 @@ __all__ = (
     "logging",
     "purge",
     "reaction",
-    "roll",
     "vegehints"
 )
