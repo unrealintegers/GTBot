@@ -12,7 +12,7 @@ class CogCommand(commands.Cog):
         names = set(map(lambda x: x[1], cmds))
         cmd_dict = {n: set(filter(lambda x: x[1] == n, cmds)) for n in names}
 
-        guild_ids = set([g.id for g in self.bot.guilds])
+        guild_ids = set([g.id for g in self.bot.bot.guilds])
         for cmd in cmd_dict:
             allowed_ids = list(cmd_dict[cmd] & guild_ids)
             self.bot.slash.commands[cmd].allowed_guild_ids = allowed_ids
