@@ -5,44 +5,16 @@ from discord_slash import SlashContext
 from discord_slash import cog_ext
 from discord_slash.utils.manage_commands import create_option
 
-from .utils import HeroMatcher, DatabaseConnection, convert_args
+from .utils import HeroMatcher, convert_args
 
 
 class CoopSlash(commands.Cog):
-    discord_ids = DatabaseConnection.fetch_flatten(f"""
-        SELECT guild_id FROM slash_guilds 
-        INNER JOIN slashes ON slash_guilds.slash_id = slashes.id 
-        AND slashes.name = 'coop'
-    """)
-
     def __init__(self, bot):
         self.bot = bot
 
         self.members = {}
 
-        self._last_author = None
-        self._last_time = 0
-
-        # _backup = self.bot.Vege.get_channel(835331220438646794)
-        #
-        # everyone = self.bot.Vege.default_role
-        # mbot = self.bot.Vege.get_role(849489655132717107)
-        # admin = self.bot.Vege.get_role(812998213543133204)
-        # overwrites = {
-        #     everyone: discord.PermissionOverwrite(
-        #         read_messages=True
-        #     ),
-        #     mbot: discord.PermissionOverwrite(
-        #         read_messages=True
-        #     ),
-        #     admin: discord.PermissionOverwrite(
-        #         manage_permissions=False
-        #     )
-        # }
-        # self.backup = BackupChannel(_backup, 900, overwrites,
-        #                             category_id=762888327808417793)
-
-    @cog_ext.cog_subcommand(guild_ids=discord_ids,
+    @cog_ext.cog_subcommand(guild_ids=[],
                             base="coop", name="add",
                             description="Adds a hero to your list of "
                                         "usable heroes.",
@@ -60,8 +32,8 @@ class CoopSlash(commands.Cog):
         await ctx.defer(hidden=True)
 
         try:
-            DatabaseConnection.execute(f"INSERT INTO heroes_owned "
-                                       f"VALUES ({ctx.author_id}, {hero.id})")
+            self.bot.coop_db.execute(f"INSERT INTO heroes_owned "
+                                     f"VALUES ({ctx.author_id}, {hero.id})")
         except pg.errors.UniqueViolation:
             await ctx.send(f"{hero.gamename} is already "
                            f"in your list of heroes!", hidden=True)
@@ -69,7 +41,7 @@ class CoopSlash(commands.Cog):
             await ctx.send(f"{hero.gamename} has been added "
                            f"to your list of heroes!", hidden=True)
 
-    @cog_ext.cog_subcommand(guild_ids=discord_ids,
+    @cog_ext.cog_subcommand(guild_ids=[],
                             base="coop", name="remove",
                             description="Removes a hero from your list of "
                                         "usable heroes.",
@@ -86,20 +58,20 @@ class CoopSlash(commands.Cog):
 
         await ctx.defer(hidden=True)
 
-        if DatabaseConnection.fetch(f"""
+        if self.bot.coop_db.fetch(f"""
             SELECT FROM heroes_owned 
             WHERE id={ctx.author_id} AND hero={hero.id}
         """):
-            DatabaseConnection.execute(f"REMOVE FROM heroes_owned"
-                                       f"WHERE id={ctx.author_id} "
-                                       f"AND hero={hero.id}")
+            self.bot.coop_db.execute(f"REMOVE FROM heroes_owned"
+                                     f"WHERE id={ctx.author_id} "
+                                     f"AND hero={hero.id}")
             await ctx.send(f"Removed {hero.gamename} from "
                            "your list of heroes!", hidden=True)
         else:
             await ctx.send(f"{hero.gamename} is not in your list of "
                            f"heroes!", hidden=True)
 
-    @cog_ext.cog_subcommand(guild_ids=discord_ids,
+    @cog_ext.cog_subcommand(guild_ids=[],
                             base="coop", name="list",
                             description="Lists your or someone else's heroes.",
                             options=[
@@ -114,7 +86,7 @@ class CoopSlash(commands.Cog):
 
         await ctx.defer()
 
-        heroes = DatabaseConnection.fetch_flatten(f"""
+        heroes = self.bot.coop_db.fetch_flatten(f"""
             SELECT hero FROM heroes_owned WHERE id={user.id}
         """)
 
@@ -128,7 +100,7 @@ class CoopSlash(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    @cog_ext.cog_subcommand(guild_ids=discord_ids,
+    @cog_ext.cog_subcommand(guild_ids=[],
                             base="coop", name="find",
                             description="Searches for people "
                                         "with a specific hero.",
@@ -149,7 +121,7 @@ class CoopSlash(commands.Cog):
 
         await ctx.defer()
 
-        discord_ids = DatabaseConnection.fetch_flatten(f"""
+        discord_ids = self.bot.coop_db.fetch_flatten(f"""
             SELECT id FROM heroes_owned WHERE hero={hero.id}
         """)
 

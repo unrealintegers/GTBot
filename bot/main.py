@@ -4,16 +4,20 @@ from discord.ext import commands
 from discord_slash import SlashCommand
 
 from cogs import *
+from cogs.utils import DatabaseConnection, HeroMatcher
 
 
 class Bot:
     def __init__(self, prefix: str):
         self.bot = commands.Bot(command_prefix=prefix,
                                 intents=discord.Intents.all())
-        self.Vege = None
         self.slash = SlashCommand(self.bot, override_type=True)
 
         self.bot.remove_command('help')
+
+        self.db = DatabaseConnection(os.getenv("BOT_DATABASE_URL"))
+        self.coop_db = DatabaseConnection(os.getenv("COOP_DATABASE_URL"))
+        self.heromatcher = HeroMatcher(self.coop_db)
 
         # Should make these into a cog too
         self.bot.add_listener(self.on_ready)
@@ -27,41 +31,27 @@ class Bot:
     async def on_ready(self):
         print("Connected")
 
-        # self.Vege = self.bot.get_guild(762888327161708615)
-
-        general.Impersonation(bot)
         admin.Evaluate(bot)
         admin.PurgeCommand(bot)
         general.Reminder(bot)
+        general.Impersonation(bot)
         gtutil.Stamina(bot)
         gtutil.WeekCheck(bot)
-
-        self.bot.add_cog(channels.ChannelSlash(self))
-        self.bot.add_cog(coop.CoopSlash(self))
-        self.bot.add_cog(cogs.CogCommand(self))
-        self.bot.add_cog(reaction.ReactionListener(self))
-
-        vh = vegehints.Vegehints(bot)
-        cron.Cron(bot)
         logging.Logging(bot)
 
-        discord_log = logging.Logging(bot)
+        # self.bot.add_cog(channels.ChannelSlash(self))
+        self.bot.add_cog(coop.CoopSlash(self))
+        self.bot.add_cog(cog := cogs.CogCommand(self))
+        self.bot.add_cog(reaction.ReactionListener(self))
 
-        self.bot.add_cog(vh)
-        await vh.init_vegehints()
+        # vh = vegehints.Vegehints(bot)
+        # cron.Cron(bot)
+        logging.Logging(bot)
 
-        # Only select guilds which bot is in
-        guild_ids = [g.id for g in self.bot.guilds]
-        for name, cmd in self.slash.commands.items():
-            cmd.allowed_guild_ids = [x for x in cmd.allowed_guild_ids
-                                     if x in guild_ids]
+        # self.bot.add_cog(vh)
+        # await vh.init_vegehints()
 
-            if name not in self.slash.subcommands:
-                continue
-
-            for subcmd in self.slash.subcommands[name].values():
-                subcmd.allowed_guild_ids = [x for x in subcmd.allowed_guild_ids
-                                            if x in guild_ids]
+        cog.sync_cmds()
 
         await self.slash.sync_all_commands()
 
@@ -70,7 +60,7 @@ class Bot:
 
     async def on_member_join(self, member):
         if member.guild.id == 762888327161708615:
-            await member.add_roles(self.Vege.get_role(809270443029561354))
+            await member.add_roles(member.guild.get_role(809270443029561354))
 
     async def on_disconnect(self):
         print("Disconnected")

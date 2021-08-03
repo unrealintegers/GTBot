@@ -5,7 +5,7 @@ from collections import defaultdict
 from dateparser import parse as parsedate
 from datetime import datetime as dt
 from datetime import timedelta
-from discord import Member, File
+from discord import Member
 from discord.ext import commands
 from discord_slash import SlashContext
 from discord_slash import cog_ext

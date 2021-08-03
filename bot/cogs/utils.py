@@ -26,32 +26,32 @@ def convert_args(args):
 
 
 class DatabaseConnection:
-    url = up.urlparse(os.getenv("ELEPHANTSQL_URL"))
+    def __init__(self, url):
+        self.url = up.urlparse(url)
 
-    conn = pg.connect(
-        database=url.path[1:],
-        user=url.username,
-        password=url.password,
-        host=url.hostname,
-        port=url.port
-    )
-    conn.autocommit = True
-    cur = conn.cursor()
+        self.conn = pg.connect(
+            database=self.url.path[1:],
+            user=self.url.username,
+            password=self.url.password,
+            host=self.url.hostname,
+            port=self.url.port
+        )
+        self.conn.autocommit = True
+        self.cur = self.conn.cursor()
 
-    @classmethod
-    def connect(cls):
-        if cls.conn is None or cls.conn.closed:
-            cls.conn = pg.connect(
-                database=cls.url.path[1:],
-                user=cls.url.username,
-                password=cls.url.password,
-                host=cls.url.hostname,
-                port=cls.url.port
+    def connect(self):
+        if self.conn is None or self.conn.closed:
+            self.conn = pg.connect(
+                database=self.url.path[1:],
+                user=self.url.username,
+                password=self.url.password,
+                host=self.url.hostname,
+                port=self.url.port
             )
-            cls.conn.autocommit = True
-            cls.cur = cls.conn.cursor()
+            self.conn.autocommit = True
+            self.cur = self.conn.cursor()
 
-        return cls.conn, cls.cur
+        return self.conn, self.cur
 
     def __enter__(self):
         conn, cur = self.connect()
@@ -60,25 +60,22 @@ class DatabaseConnection:
     def __exit__(self, exc_type, exc_val, exc_tb):
         return False
 
-    @classmethod
-    def execute(cls, command):
-        cls.connect()
-        cls.cur.execute(command)
+    def execute(self, command):
+        self.connect()
+        self.cur.execute(command)
 
-    @classmethod
-    def fetch(cls, command):
-        cls.connect()
-        cls.cur.execute(command)
+    def fetch(self, command):
+        self.connect()
+        self.cur.execute(command)
 
-        return cls.cur.fetchall()
+        return self.cur.fetchall()
 
-    @classmethod
-    def fetch_flatten(cls, command):
-        cls.connect()
-        cls.cur.execute(command)
+    def fetch_flatten(self, command):
+        self.connect()
+        self.cur.execute(command)
 
         # [(3,), (11,), ..., (71,)] => [3, 11, ..., 71]
-        return sum(map(list, cls.cur.fetchall()), [])
+        return sum(map(list, self.cur.fetchall()), [])
 
 
 class Hero:
@@ -96,27 +93,24 @@ class Hero:
 
 
 class HeroMatcher:
-    heroes = DatabaseConnection.fetch(f"SELECT * FROM hero_names")
+    def __init__(self, db):
+        heroes = db.fetch(f"SELECT * FROM hero_names")
 
-    # 2-way mapping between id and hero name
-    heroes = {a: Hero(a, *b) for (a, *b) in heroes}
+        # 2-way mapping between id and hero name
+        self.heroes = {a: Hero(a, *b) for (a, *b) in heroes}
 
-    members = {}  # member ID -> channel ID
-
-    @classmethod
-    def get(cls, hero_id):
+    def get(self, hero_id):
         try:
-            return cls.heroes[hero_id]
+            return self.heroes[hero_id]
         except KeyError:
             return None
 
-    @classmethod
-    def match(cls, txt):
+    def match(self, txt):
         txt = txt.lower().strip()
         if ' ' not in txt:
             # Match hero name
             candidates = []
-            for hero in cls.heroes.values():
+            for hero in self.heroes.values():
                 if hero.name.startswith(txt):
                     candidates.append(hero)
 
@@ -126,7 +120,7 @@ class HeroMatcher:
                 raise ValueError("Too many heroes found!")
 
             # Match initials
-            for hero in cls.heroes.values():
+            for hero in self.heroes.values():
                 if hero.initials == txt:
                     candidates.append(hero)
 
@@ -140,7 +134,7 @@ class HeroMatcher:
         else:
             words = set(txt.split())
             candidates = []
-            for hero in cls.heroes.values():
+            for hero in self.heroes.values():
                 if words.issubset(hero.tokens):
                     candidates.append(hero)
 
