@@ -5,7 +5,7 @@ from discord_slash import SlashContext
 from discord_slash import cog_ext
 from discord_slash.utils.manage_commands import create_option
 
-from .utils import HeroMatcher, convert_args
+from .utils import convert_args
 
 
 class CoopSlash(commands.Cog):
@@ -24,7 +24,7 @@ class CoopSlash(commands.Cog):
                             ])
     async def coop_add(self, ctx: SlashContext, hero: str):
         try:
-            hero = HeroMatcher.match(hero)
+            hero = self.bot.heromatcher.match(hero)
         except ValueError as e:
             await ctx.send(e.args[0], hidden=True)
             return
@@ -51,7 +51,7 @@ class CoopSlash(commands.Cog):
                             ])
     async def coop_remove(self, ctx: SlashContext, hero: str):
         try:
-            hero = HeroMatcher.match(hero)
+            hero = self.bot.heromatcher.match(hero)
         except ValueError as e:
             await ctx.send(e.args[0], hidden=True)
             return
@@ -91,7 +91,7 @@ class CoopSlash(commands.Cog):
         """)
 
         # Converts to list of names
-        heroes = map(lambda h: HeroMatcher.get(h).gamename, heroes)
+        heroes = map(lambda h: self.bot.heromatcher.get(h).gamename, heroes)
         hero_str = '\n'.join(heroes) or "*None*"
 
         embed = discord.Embed(colour=0x00ffd9, description=hero_str)
@@ -114,7 +114,7 @@ class CoopSlash(commands.Cog):
         args = convert_args(flags.split())
 
         try:
-            hero = HeroMatcher.match(hero)
+            hero = self.bot.heromatcher.match(hero)
         except ValueError as e:
             await ctx.send(e.args[0], hidden=True)
             return
