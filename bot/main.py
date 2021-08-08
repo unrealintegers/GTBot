@@ -46,7 +46,6 @@ class Bot:
 
         # vh = vegehints.Vegehints(bot)
         # cron.Cron(bot)
-        logging.Logging(bot)
 
         # self.bot.add_cog(vh)
         # await vh.init_vegehints()
