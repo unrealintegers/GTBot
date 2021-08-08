@@ -48,7 +48,7 @@ class Evaluate(commands.Cog):
 
         if len(self.result) > 2000:
             fp = io.BytesIO(self.result.encode('utf-8'))
-            await ctx.send(File(fp, "output.txt"))
+            await ctx.send(file=File(fp, "output.txt"))
         else:
             await ctx.send(self.result, hidden=hidden)
 
