@@ -63,7 +63,6 @@ class Logging:
 
         return wrapper
 
-    # https://github.com/discord-py-slash-commands/discord-py-interactions/pull/269
     def slash_cmd(self):
         channel = self.get_channel(852365427299975208)
 
