@@ -59,6 +59,7 @@ class PurgeFlags:
         self.members = None
         self.limit = None
         self.reversed = None
+        self.count = 0
 
     @staticmethod
     async def from_str(ctx, str_):
@@ -72,13 +73,13 @@ class PurgeFlags:
         if 'r' in args:
             purgeflags.roles = []
             for roles in args['r']:
-                for rolestr in roles:
+                for rolestr in roles.split():
                     role = await role_converter.convert(ctx, rolestr)
                     purgeflags.roles.append(role)
         elif 'a' in args:
             purgeflags.members = []
             for authors in args['a']:
-                for authstr in authors:
+                for authstr in authors.split():
                     auth = await member_converter.convert(ctx, authstr)
                     purgeflags.members.append(auth)
         if 'l' in args:
@@ -100,6 +101,7 @@ class PurgeFlags:
                 return False
             else:
                 self.limit -= 1
+        self.count += 1
         return True
 
 
@@ -134,4 +136,4 @@ class PurgeCommand(commands.Cog):
 
         await ctx.channel.purge(limit=number, check=flags.check,
                                 oldest_first=flags.reversed)
-        await ctx.send("Done!", hidden=True)
+        await ctx.send(f"{flags.count} messages deleted!", hidden=True)
