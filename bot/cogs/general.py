@@ -1,6 +1,5 @@
 import aiocron
 import asyncio
-import json
 from collections import defaultdict
 from dateparser import parse as parsedate
 from datetime import datetime as dt
@@ -22,12 +21,24 @@ class Reminder(commands.Cog):
 
         self.update().start()
 
-    async def remind(self, uid: int, time: int, message: str, link: str):
+    async def remind(self, reminder_id: int, time: timedelta):
         async def _coro():
-            await asyncio.sleep(time)
+            await asyncio.sleep(time.total_seconds())
+
+            if not (tup := self.bot.db.fetch(
+                "SELECT uid, message, link FROM reminders "
+                "WHERE id = %s", (reminder_id,)
+            )):
+                return
+
+            uid, message, link = tup[0]
+
             await self.bot.bot.get_user(uid).send(
                 f"<@{uid}> **REMINDER:** {message}\n\n Context: {link}"
             )
+
+            self.bot.db.execute("DELETE FROM reminders WHERE id = %s",
+                                (reminder_id,))
 
         asyncio.create_task(_coro())
 
@@ -43,11 +54,6 @@ class Reminder(commands.Cog):
     )
     async def reminder(self, ctx: SlashContext, time: str,
                        message: str = 'something'):
-        # tp = re.compile("^((?P<hours>\d+(?:\.\d+)?)(?:h|($)|(:)))?"
-        #                 "(?(3)|(?P<minutes>\d+(?:\.\d+)?)(?:($)|(?(4)\4|m)))?"
-        #                 "(?(6)|(?P<seconds>\d+(?:\.\d+)?)(?:$|(?(4)|s)))?"
-        #                 "(?(2)$|(?(5)$|(?(7)$|(?!$))))")
-
         time = parsedate('in ' + time)
 
         if time is None:
@@ -60,46 +66,42 @@ class Reminder(commands.Cog):
         if delta < timedelta(0):
             await ctx.send(f"You can't make a reminder to the past!",
                            hidden=True)
-        elif delta < timedelta(hours=1):
-            await ctx.send(f"Your reminder for **{message}** has been set for "
-                           f"__{time.strftime(self.DATE_FORMAT)}__.")
-            await self.remind(ctx.author_id, int(delta.total_seconds()),
-                              message, ctx.message.jump_url)
-        else:
-            with open('reminder.txt') as f:
-                reminders = json.loads(f.read())
+            return
 
-            await ctx.send(f"Your reminder for **{message}** has been set for "
-                           f"__{time.strftime(self.DATE_FORMAT)}__.")
+        if len(message) > 199:
+            await ctx.send("Message length must not exceed 200 characters!",
+                           hidden=True)
+            return
 
-            reminders.append({'time': time.strftime(self.DATE_FORMAT),
-                              'uid': ctx.author_id, 'message': message,
-                              'link': ctx.message.jump_url})
+        await ctx.defer()
 
-            with open('reminder.txt', 'w') as f:
-                f.write(json.dumps(reminders))
+        reminder_id = self.bot.db.fetch("INSERT INTO reminders "
+                                        "(uid, time, message, link) VALUES "
+                                        "(%s, %s, %s, %s) RETURNING id",
+                                        (ctx.author_id, time, message,
+                                         ''))[0][0]
+
+        # This does cause some potential overlap, but overlaps will happen
+        # with bot restarts/reconnects
+        if delta < timedelta(hours=1):
+            await self.remind(reminder_id, delta)
+
+        await ctx.send(f"Your reminder for **{message}** has been set for "
+                       f"__{time.strftime(self.DATE_FORMAT)}__.")
+
+        self.bot.db.execute("UPDATE reminders SET link = %s WHERE id = %s",
+                            (ctx.message.jump_url, reminder_id))
 
     def update(self):
-        def check_if_soon(reminder):
-            time = dt.strptime(reminder['time'], self.DATE_FORMAT)
-            return time - dt.now() < timedelta(hours=1)
-
         @aiocron.crontab("0 * * * *")
         async def wrapper():
-            with open('reminder.txt') as f:
-                reminders = json.loads(f.read())
+            reminders = self.bot.db.fetch(
+                "SELECT id, time - NOW() FROM reminders "
+                "WHERE time - NOW() < INTERVAL '1 hour'"
+            )
 
-            remind_soon = list(filter(check_if_soon, reminders))
-            remind_later = list(filter(lambda x: not check_if_soon(x),
-                                       reminders))
-
-            with open('reminder.txt', 'w') as f:
-                f.write(json.dumps(remind_later))
-
-            for reminder in remind_soon:
-                time = dt.strptime(reminder['time'], self.DATE_FORMAT)
-                reminder['time'] = time - dt.now()
-                await self.remind(**reminder)
+            for reminder in reminders:
+                await self.remind(*reminder)
 
         return wrapper
 

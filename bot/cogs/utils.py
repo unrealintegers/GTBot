@@ -1,6 +1,5 @@
 import asyncio
 import discord
-import os
 import psycopg2 as pg
 import urllib.parse as up
 from collections import defaultdict
@@ -53,29 +52,30 @@ class DatabaseConnection:
 
         return self.conn, self.cur
 
-    def __enter__(self):
-        conn, cur = self.connect()
-        return conn, cur
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        return False
-
-    def execute(self, command):
+    def execute(self, command, fields=None):
         self.connect()
-        self.cur.execute(command)
+        self.cur.execute(command, fields)
 
-    def fetch(self, command):
+    def fetch(self, command, fields=None):
         self.connect()
-        self.cur.execute(command)
+        self.cur.execute(command, fields)
 
         return self.cur.fetchall()
 
-    def fetch_flatten(self, command):
+    def fetch_flatten(self, command, fields=None):
         self.connect()
-        self.cur.execute(command)
+        self.cur.execute(command, fields)
 
         # [(3,), (11,), ..., (71,)] => [3, 11, ..., 71]
         return sum(map(list, self.cur.fetchall()), [])
+
+    def fetch_dict(self, keys, command, fields=None):
+        self.connect()
+        self.cur.execute(command, fields)
+
+        # [(3,), (11,), ..., (71,)] => [3, 11, ..., 71]
+        return [{y: x for (x, y) in zip(keys, row)}
+                for row in self.cur.fetchall()]
 
 
 class Hero:
