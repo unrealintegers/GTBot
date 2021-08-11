@@ -1,6 +1,7 @@
 import asyncio
 import discord
 import psycopg2 as pg
+from psycopg2.extras import NamedTupleCursor
 import urllib.parse as up
 from collections import defaultdict
 from datetime import datetime as dt
@@ -33,7 +34,8 @@ class DatabaseConnection:
             user=self.url.username,
             password=self.url.password,
             host=self.url.hostname,
-            port=self.url.port
+            port=self.url.port,
+            cursor_factory=NamedTupleCursor
         )
         self.conn.autocommit = True
         self.cur = self.conn.cursor()
