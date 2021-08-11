@@ -44,9 +44,9 @@ class Bot:
         self.bot.add_cog(cog := cogs.CogCommand(self))
         self.bot.add_cog(reaction.ReactionListener(self))
 
-        # vh = vegehints.Vegehints(bot)
-        # cron.Cron(bot)
+        cron.Cron(bot)
 
+        # vh = vegehints.Vegehints(bot)
         # self.bot.add_cog(vh)
         # await vh.init_vegehints()
 
