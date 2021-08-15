@@ -80,6 +80,6 @@ class WeekCheck(commands.Cog):
         weeks = (dt.utcnow() - start_date).total_seconds() // week_seconds
 
         if weeks % 2 == 0:
-            await ctx.send(f"Arena (Red) Week", hidden=True)
+            await ctx.send(f"Arena (Yellow) Week", hidden=True)
         else:
             await ctx.send(f"Co-op (Green) Week", hidden=True)
