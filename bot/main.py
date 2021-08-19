@@ -11,7 +11,8 @@ class Bot:
     def __init__(self, prefix: str):
         self.bot = commands.Bot(command_prefix=prefix,
                                 intents=discord.Intents.all())
-        self.slash = SlashCommand(self.bot, override_type=True)
+        self.slash = SlashCommand(self.bot, override_type=True,
+                                  sync_commands=False)
 
         self.bot.remove_command('help')
 
