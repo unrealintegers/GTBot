@@ -62,7 +62,7 @@ class CoopSlash(commands.Cog):
             SELECT FROM heroes_owned 
             WHERE id={ctx.author_id} AND hero={hero.id}
         """):
-            self.bot.coop_db.execute(f"REMOVE FROM heroes_owned"
+            self.bot.coop_db.execute(f"DELETE FROM heroes_owned "
                                      f"WHERE id={ctx.author_id} "
                                      f"AND hero={hero.id}")
             await ctx.send(f"Removed {hero.gamename} from "
