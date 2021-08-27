@@ -137,7 +137,6 @@ class Impersonation(commands.Cog):
         self.cooldowns[user][0] = dt.utcnow()
         self.cooldowns[user][1] += td.total_seconds() / 300
         self.cooldowns[user][1] = min(4, self.cooldowns[user][1])
-        print(self.cooldowns[user])
 
         if self.cooldowns[user][1] < 1 and ctx.author_id != 330509305663193091:
             cd = (1 - self.cooldowns[user][1]) * 300
