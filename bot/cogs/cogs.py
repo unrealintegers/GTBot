@@ -1,20 +1,22 @@
 from discord.ext import commands
 
+from .utils import groupby
 
 class CogCommand(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    def sync_cmds(self):
+    async def sync_cmds(self):
         cmds = self.bot.db.fetch("SELECT slash_guilds.guild_id, slashes.name "
                                  "FROM slash_guilds INNER JOIN slashes "
                                  "ON slash_guilds.slash_id = slashes.id")
-        names = set(map(lambda x: x[1], cmds))
-        cmd_dict = {n: set(filter(lambda x: x[1] == n, cmds)) for n in names}
+
+        cmd_dict = groupby(cmds, "name")
 
         guild_ids = set([g.id for g in self.bot.bot.guilds])
         for cmd in cmd_dict:
-            allowed_ids = list(cmd_dict[cmd] & guild_ids)
+            guild_list = set(map(lambda x: x.guild_id, cmd_dict[cmd]))
+            allowed_ids = list(guild_list & guild_ids)
             self.bot.slash.commands[cmd].allowed_guild_ids = allowed_ids
 
             for subcmd in self.bot.slash.subcommands[cmd].values():

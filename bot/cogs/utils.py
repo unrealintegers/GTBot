@@ -1,10 +1,10 @@
 import asyncio
 import discord
 import psycopg2 as pg
-from psycopg2.extras import NamedTupleCursor
 import urllib.parse as up
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from datetime import datetime as dt
+from psycopg2.extras import NamedTupleCursor
 
 up.uses_netloc.append("postgres")
 
@@ -23,6 +23,23 @@ def convert_args(args):
         arg = ' '.join(args[parents[i] + 1: parents[i + 1]])
         tree[args[parents[i]][1:]].append(arg)
     return tree
+
+
+def groupby(rows: list[namedtuple], field: str):
+    row = rows[0]
+    fields = list(row._fields)
+    fields.remove(field)
+    nt = namedtuple(row.__class__.__name__, fields)
+
+    grouped = defaultdict(list)
+    for row in rows:
+        key = getattr(row, field)
+        _dict = row._asdict()
+        del _dict[field]
+
+        grouped[key].append(nt(**_dict))
+
+    return grouped
 
 
 class DatabaseConnection:

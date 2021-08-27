@@ -2,6 +2,7 @@ import discord
 import os
 from discord.ext import commands
 from discord_slash import SlashCommand
+from discord_slash.utils import manage_commands
 
 from cogs import *
 from cogs.utils import DatabaseConnection, HeroMatcher
@@ -51,9 +52,9 @@ class Bot:
         # self.bot.add_cog(vh)
         # await vh.init_vegehints()
 
-        cog.sync_cmds()
+        await cog.sync_cmds()
+        await self.slash.sync_all_commands(delete_from_unused_guilds=True)
 
-        await self.slash.sync_all_commands()
 
     async def on_resumed(self):
         print("Reconnected")
