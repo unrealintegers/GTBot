@@ -91,14 +91,12 @@ class CoopSlash(commands.Cog):
         """)
 
         # Converts to list of names
-        heroes = map(lambda h: self.bot.heromatcher.get(h).gamename, heroes)
-        hero_str = '\n'.join(heroes) or "*None*"
+        heroes = map(lambda h: self.bot.heromatcher.get(h).emoji_id, heroes)
+        heroes = map(lambda e: str(self.bot.bot.get_emoji(e)), heroes)
+        hero_str = ''.join(heroes) or "*None*"
 
-        embed = discord.Embed(colour=0x00ffd9, description=hero_str)
-        embed.set_author(name=f"{user.display_name}'s Heroes",
-                         icon_url=user.avatar_url)
-
-        await ctx.send(embed=embed)
+        await ctx.send(f"__**{user.display_name}'s Heroes:**__")
+        await ctx.channel.send(hero_str)
 
     @cog_ext.cog_subcommand(guild_ids=[],
                             base="coop", name="find",
