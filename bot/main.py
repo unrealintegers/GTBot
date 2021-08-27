@@ -55,7 +55,6 @@ class Bot:
         await cog.sync_cmds()
         await self.slash.sync_all_commands(delete_from_unused_guilds=True)
 
-
     async def on_resumed(self):
         print("Reconnected")
 
