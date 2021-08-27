@@ -32,30 +32,8 @@ for hero, value in coords['frames'].items():
         box = (x, y, x+dx, y+dy)
         portrait = image.crop(box)
 
-        path = os.path.join("portraits", hero + ".png")
+        path = os.path.join("portraits", f"gtp_{hero}.png")
         portrait.save(path, "PNG")
 
-
-# if not env.objects:
-#     raise ValueError("Objects Not Found")
-
-# # iterate over internal objects
-# for obj in env.objects:
-#     # process specific object types
-#     if obj.type in ["Texture2D", "Sprite"]:
-#         # parse the object data
-#         data = obj.read()
-#
-#         # create destination path
-#         dest = os.path.join("output", data.name)
-#
-#         # make sure that the extension is correct
-#         # you probably only want to do so with images/textures
-#         dest, ext = os.path.splitext(dest)
-#         dest = dest + ".png"
-#
-#         try:
-#             img = data.image
-#             img.save(dest)
-#         except (AttributeError, SystemError):
-#             print(data.name)
+# cleanup
+os.remove(apk_name)
