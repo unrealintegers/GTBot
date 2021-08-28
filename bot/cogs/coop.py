@@ -1,4 +1,5 @@
 import discord
+import numpy as np
 import psycopg2 as pg
 from discord.ext import commands
 from discord_slash import SlashContext
@@ -93,7 +94,13 @@ class CoopSlash(commands.Cog):
         # Converts to list of names
         heroes = map(lambda h: self.bot.heromatcher.get(h).emoji_id, heroes)
         heroes = map(lambda e: str(self.bot.bot.get_emoji(e)), heroes)
-        hero_str = ''.join(heroes) or "*None*"
+
+        # Convert to n x 7 array
+        heroes = np.fromiter(heroes, "U64")
+        heroes = np.pad(heroes, (0, -heroes.size % 7), constant_values='')
+        heroes = heroes.reshape(-1, 7)
+
+        hero_str = '\n'.join(map(lambda x: ''.join(x), heroes)) or "*None*"
 
         await ctx.send(f"__**{user.display_name}'s Heroes:**__")
         await ctx.channel.send(hero_str)
