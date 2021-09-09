@@ -128,8 +128,13 @@ class PurgeCommand(commands.Cog):
             return
 
         if not ctx.channel.permissions_for(ctx.author).manage_messages:
-            await ctx.send("You need `Manage Messages` to use this command!")
+            await ctx.send("You need `Manage Messages` to use this command!",
+                           hidden=True)
             return
+
+        if not ctx.channel.permissions_for(self.bot.bot).manage_messages:
+            await ctx.send("I do not have the `Manage Messages` permission "
+                           "in this channel!", hidden=True)
 
         await ctx.defer(hidden=True)
         flags = await PurgeFlags.from_str(ctx, flags)
