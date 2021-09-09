@@ -140,7 +140,7 @@ class CoopSlash(commands.Cog):
         members = map(lambda x: ctx.guild.get_member(x), discord_ids)
         members = [x for x in members if x]
         if 'n' not in args:
-            members = map(lambda x: str(x), members)
+            members = map(lambda x: x.mention, members)
             embed.description = ', '.join(members)
         else:
             members = map(lambda x: x.display_name, members)
