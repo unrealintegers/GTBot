@@ -35,9 +35,10 @@ class CogCommand(commands.Cog):
 
         if ctx.guild.id not in self.bot.slash.commands[cmd].allowed_guild_ids:
             self.bot.slash.commands[cmd].allowed_guild_ids.append(ctx.guild.id)
-        for subcmd in self.bot.slash.subcommands[cmd].values():
-            if ctx.guild.id not in subcmd.allowed_guild_ids:
-                subcmd.allowed_guild_ids.append(ctx.guild.id)
+        if cmd in self.bot.slash.subcommands:
+            for subcmd in self.bot.slash.subcommands[cmd].values():
+                if ctx.guild.id not in subcmd.allowed_guild_ids:
+                    subcmd.allowed_guild_ids.append(ctx.guild.id)
 
         await self.bot.slash.sync_all_commands()
         await ctx.message.delete()
