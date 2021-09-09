@@ -115,6 +115,7 @@ class Impersonation(commands.Cog):
         self.bot.bot.add_cog(self)
 
     @cog_ext.cog_slash(
+        guild_ids=[],
         name="impersonate",
         description="Speaks on behalf of someone else. (Limit: 4/20min)",
         options=[
