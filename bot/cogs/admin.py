@@ -132,7 +132,8 @@ class PurgeCommand(commands.Cog):
                            hidden=True)
             return
 
-        if not ctx.channel.permissions_for(self.bot.bot).manage_messages:
+        perm = ctx.channel.permissions_for(ctx.me)
+        if not perm.administrator and not perm.manage_messages:
             await ctx.send("I do not have the `Manage Messages` permission "
                            "in this channel!", hidden=True)
 

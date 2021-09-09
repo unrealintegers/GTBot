@@ -82,7 +82,8 @@ class CoopSlash(commands.Cog):
                             ])
     async def coop_list(self, ctx: SlashContext,
                         user: discord.Member = None):
-        if not ctx.channel.permissions_for(self.bot.bot).send_messages:
+        perm = ctx.channel.permissions_for(ctx.me)
+        if not perm.administrator and not perm.send_messages:
             await ctx.send("I do not have `Send Messages` permission "
                            "in this channel!")
         if not user:

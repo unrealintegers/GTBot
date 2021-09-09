@@ -33,13 +33,13 @@ class Bot:
     async def on_ready(self):
         print("Connected")
 
-        admin.Evaluate(bot)
-        admin.PurgeCommand(bot)
-        general.Reminder(bot)
-        general.Impersonation(bot)
-        gtutil.Stamina(bot)
-        gtutil.WeekCheck(bot)
-        logging.Logging(bot)
+        admin.Evaluate(self)
+        admin.PurgeCommand(self)
+        general.Reminder(self)
+        general.Impersonation(self)
+        gtutil.Stamina(self)
+        gtutil.WeekCheck(self)
+        logging.Logging(self)
 
         # self.bot.add_cog(channels.ChannelSlash(self))
         self.bot.add_cog(coop.CoopSlash(self))
