@@ -17,11 +17,14 @@ class CogCommand(commands.Cog):
         guild_ids = set([g.id for g in self.bot.bot.guilds])
         for cmd in cmd_dict:
             guild_list = set(map(lambda x: x.guild_id, cmd_dict[cmd]))
+            print(f"{cmd} not found in "
+                  f"{(x for x in cmd_dict[cmd] if x not in guild_list)}")
             allowed_ids = list(guild_list & guild_ids)
             self.bot.slash.commands[cmd].allowed_guild_ids = allowed_ids
 
-            for subcmd in self.bot.slash.subcommands[cmd].values():
-                subcmd.allowed_guild_ids = allowed_ids
+            if cmd in self.bot.slash.subcommands:
+                for subcmd in self.bot.slash.subcommands[cmd].values():
+                    subcmd.allowed_guild_ids = allowed_ids
 
     @commands.command()
     @commands.is_owner()
@@ -54,9 +57,10 @@ class CogCommand(commands.Cog):
 
         if ctx.guild.id in self.bot.slash.commands[cmd].allowed_guild_ids:
             self.bot.slash.commands[cmd].allowed_guild_ids.remove(ctx.guild.id)
-        for subcmd in self.bot.slash.subcommands[cmd].values():
-            if ctx.guild.id in subcmd.allowed_guild_ids:
-                subcmd.allowed_guild_ids.remove(ctx.guild.id)
+        if cmd in self.bot.slash.subcommands:
+            for subcmd in self.bot.slash.subcommands[cmd].values():
+                if ctx.guild.id in subcmd.allowed_guild_ids:
+                    subcmd.allowed_guild_ids.remove(ctx.guild.id)
 
         await self.bot.slash.sync_all_commands()
         await ctx.message.delete()
