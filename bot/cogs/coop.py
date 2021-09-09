@@ -82,6 +82,9 @@ class CoopSlash(commands.Cog):
                             ])
     async def coop_list(self, ctx: SlashContext,
                         user: discord.Member = None):
+        if not ctx.channel.permissions_for(self.bot.bot).send_messages:
+            await ctx.send("I do not have `Send Messages` permission "
+                           "in this channel!")
         if not user:
             user = ctx.author
 
@@ -134,12 +137,13 @@ class CoopSlash(commands.Cog):
                               title=f"Users of {hero.gamename}")
 
         # do pings, otherwise member names
+        members = map(lambda x: ctx.guild.get_member(x), discord_ids)
+        members = [x for x in members if x]
         if 'n' not in args:
-            members = map(lambda x: f"<@{x}>", discord_ids)
+            members = map(lambda x: str(x), discord_ids)
             embed.description = ', '.join(members)
         else:
-            members = map(lambda x: ctx.guild.get_member(x).display_name,
-                          discord_ids)
+            members = map(lambda x: x.display_name, discord_ids)
             embed.description = '\n'.join(members)
 
         await ctx.send(embed=embed)
