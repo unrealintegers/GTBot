@@ -18,7 +18,7 @@ class CogCommand(commands.Cog):
         for cmd in cmd_dict:
             guild_list = set(map(lambda x: x.guild_id, cmd_dict[cmd]))
             print(f"{cmd} not found in "
-                  f"{(x for x in cmd_dict[cmd] if x not in guild_list)}")
+                  f"{[x for x in cmd_dict[cmd] if x not in guild_list]}")
             allowed_ids = list(guild_list & guild_ids)
             self.bot.slash.commands[cmd].allowed_guild_ids = allowed_ids
 
