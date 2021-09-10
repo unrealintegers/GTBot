@@ -1,12 +1,16 @@
 import os
 import json
-import sys
 import zipfile
 import UnityPy
 
 # pass name of zip as command line arg
-zip_name = sys.argv[1]
-with zipfile.ZipFile(zip_name) as z:
+files = [f for f in os.listdir() if f.endswith('.xapk')]
+
+if len(files) != 1:
+    print(f"found {len(files)} .xapk files!")
+    exit()
+
+with zipfile.ZipFile(files[0]) as z:
     apk_name = z.extract("com.kakaogames.gdts.apk")
 
 env = UnityPy.load(apk_name)
@@ -34,6 +38,3 @@ for hero, value in coords['frames'].items():
 
         path = os.path.join("portraits", f"gtp_{hero}.png")
         portrait.save(path, "PNG")
-
-# cleanup
-os.remove(apk_name)
