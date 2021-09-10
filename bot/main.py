@@ -60,8 +60,8 @@ class Bot:
 
     async def on_member_join(self, member):
         if member.guild.id == 762888327161708615:
-            if member.id in [490756819401179138, 668688637545938965]:
-                await member.kick()
+            if member.id in [490756819401179138]:
+                await member.ban(delete_message_days=0)
                 return
             await member.add_roles(member.guild.get_role(809270443029561354))
 
