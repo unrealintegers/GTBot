@@ -2,7 +2,6 @@ import discord
 import os
 from discord.ext import commands
 from discord_slash import SlashCommand
-from discord_slash.utils import manage_commands
 
 from cogs import *
 from cogs.utils import DatabaseConnection, HeroMatcher
