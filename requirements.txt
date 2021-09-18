@@ -1,10 +1,8 @@
 py-cord
 discord-py-slash-command>=2.4.0
-PyYAML
 pytz
 aiocron
 dateparser
-fuzzywuzzy
 requests
 python-Levenshtein
 psycopg2
