@@ -5,7 +5,6 @@ pytz
 aiocron
 dateparser
 fuzzywuzzy
-pandas
 requests
 python-Levenshtein
 psycopg2
