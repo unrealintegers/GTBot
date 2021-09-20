@@ -43,7 +43,7 @@ class DiscordBot:
     async def instantiate_commands(self, cmd_dict):
         for sub_cls in SlashCommand.__subclasses__():
             name = sub_cls.name  # noqa : name is guaranteed to be defined
-            guild_ids = cmd_dict.pop(name, [])
+            guild_ids = cmd_dict.pop(name, None)  # None = global
             sub_cls(self, guild_ids)
 
         if cmd_dict:
