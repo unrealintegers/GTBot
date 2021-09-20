@@ -1,9 +1,18 @@
+from __future__ import annotations
+
+import typing
+
 from discord.ext import commands
+
+if typing.TYPE_CHECKING:
+    from .bot import DiscordBot
 
 
 class ReactionListener(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: DiscordBot):
         self.bot = bot
+
+        self.bot.bot.add_cog(self)
 
     async def handle_role(self, reaction, role):
         event_type = reaction.event_type

@@ -3,11 +3,11 @@ from discord.ext import commands
 from .utils import groupby
 
 
-class CogCommand(commands.Cog):
+class GuildCommandManager(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def sync_cmds(self):
+    def get_commands(self):
         cmds = self.bot.db.fetch("SELECT slash_guilds.guild_id, slashes.name "
                                  "FROM slash_guilds INNER JOIN slashes "
                                  "ON slash_guilds.slash_id = slashes.id")
@@ -20,11 +20,9 @@ class CogCommand(commands.Cog):
             allowed_ids = list(guild_list & guild_ids)
             print(f"{cmd} not found in "
                   f"{[x for x in guild_list if x not in allowed_ids]}")
-            self.bot.slash.commands[cmd].allowed_guild_ids = allowed_ids
+            cmd_dict[cmd] = allowed_ids
 
-            if cmd in self.bot.slash.subcommands:
-                for subcmd in self.bot.slash.subcommands[cmd].values():
-                    subcmd.allowed_guild_ids = allowed_ids
+        return cmd_dict
 
     @commands.command()
     @commands.is_owner()

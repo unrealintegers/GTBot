@@ -1,40 +1,33 @@
 import io
+
 from discord import File
-from discord.ext import commands
-from discord_slash import SlashContext
-from discord_slash import cog_ext
-from discord_slash.utils.manage_commands import create_option
+from discord.app import ApplicationContext, Option
+from discord.ext.commands import RoleConverter, MemberConverter
 
-from .utils import convert_args
+from ..bot import DiscordBot, SlashCommand
+from ..utils import convert_args
 
 
-class Evaluate(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+class Evaluate(SlashCommand, name="evaluate"):
+    def __init__(self, bot: DiscordBot, guild_ids: list[int]):
+        super().__init__(bot, guild_ids)
 
         self.result = None
 
-        self.bot.bot.add_cog(self)
+        self.bot.bot.slash_command(
+            name="eval", guild_ids=self.guild_ids)(self._eval)
 
-    @cog_ext.cog_slash(
-        name="eval",
-        description="evaluate",
-        options=[
-            create_option(
-                name='command',
-                description='What you want to do',
-                option_type=str,
-                required=False
-            ),
-        ]
-    )
-    async def _eval(self, ctx: SlashContext, command: str):
-        if ctx.author.id not in [330509305663193091, 475440146221760512]:
-            await ctx.send("What do you think you're doing?", hidden=True)
+    async def _eval(
+            self, ctx: ApplicationContext,
+            command: Option(str, "&h")
+    ):
+        if ctx.user.id not in [330509305663193091, 475440146221760512]:
+            await ctx.respond("What do you think you're doing?",
+                              ephemeral=True)
             return
-
-        hidden = (command[0] == "&")
-        if hidden:
+        """evaluate"""
+        ephemeral = (command[0] == "&")
+        if ephemeral:
             command = command[1:]
 
         if command[0] == command[-1] == '`':
@@ -48,9 +41,9 @@ class Evaluate(commands.Cog):
 
         if len(self.result) > 2000:
             fp = io.BytesIO(self.result.encode('utf-8'))
-            await ctx.send(file=File(fp, "output.txt"))
+            await ctx.respond(file=File(fp, "output.txt"))
         else:
-            await ctx.send(self.result, hidden=hidden)
+            await ctx.respond(self.result, ephemeral=ephemeral)
 
 
 class PurgeFlags:
@@ -66,8 +59,8 @@ class PurgeFlags:
         purgeflags = PurgeFlags()
         flags = str_.split()
 
-        role_converter = commands.RoleConverter()
-        member_converter = commands.MemberConverter()
+        role_converter = RoleConverter()
+        member_converter = MemberConverter()
         args = convert_args(flags)
 
         if 'r' in args:
@@ -105,41 +98,35 @@ class PurgeFlags:
         return True
 
 
-class PurgeCommand(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+class PurgeCommand(SlashCommand, name="purge"):
+    def __init__(self, bot: DiscordBot, guild_ids: list[int]):
+        super().__init__(bot, guild_ids)
 
-        self.bot.bot.add_cog(self)
+        self.bot.bot.slash_command(guild_ids=self.guild_ids)(self.purge)
 
-    @cog_ext.cog_slash(name="purge",
-                       description="Mass deletes messages",
-                       options=[
-                           create_option("number",
-                                         "number of messages to check",
-                                         int, True),
-                           create_option("flags",
-                                         "flags to use: r=role, a=author, "
-                                         "e=reverse, l=limit", str, False)
-                       ]
-                       )
-    async def purge(self, ctx: SlashContext, number, flags=''):
+    async def purge(
+            self, ctx: ApplicationContext,
+            number: Option(int, "number of messages"),
+            flags: Option(str, "purge flags", required=False) = ''
+    ):
+        """Mass delete messages"""
         if ctx.guild is None:
-            await ctx.send("This command cannot be used in a DM.")
+            await ctx.respond("This command cannot be used in a DM.")
             return
 
         if not ctx.channel.permissions_for(ctx.author).manage_messages:
-            await ctx.send("You need `Manage Messages` to use this command!",
-                           hidden=True)
+            await ctx.respond("You need `Manage Messages` to "
+                              "use this command!", ephemeral=True)
             return
 
-        perm = ctx.channel.permissions_for(ctx.me)
+        perm = ctx.channel.permissions_for(ctx.guild.me)
         if not perm.administrator and not perm.manage_messages:
-            await ctx.send("I do not have the `Manage Messages` permission "
-                           "in this channel!", hidden=True)
+            await ctx.respond("I do not have the `Manage Messages` permission "
+                              "in this channel!", ephemeral=True)
 
-        await ctx.defer(hidden=True)
+        await ctx.defer(ephemeral=True)
         flags = await PurgeFlags.from_str(ctx, flags)
 
         await ctx.channel.purge(limit=number, check=flags.check,
                                 oldest_first=flags.reversed)
-        await ctx.send(f"{flags.count} messages deleted!", hidden=True)
+        await ctx.respond(f"{flags.count} messages deleted!", ephemeral=True)

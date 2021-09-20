@@ -2,7 +2,7 @@ import discord
 import codecs
 import random
 from discord.ext import commands
-from discord_slash import SlashContext
+from discord_slash import ApplicationContext
 from discord_slash import cog_ext
 from discord_slash.utils.manage_commands import create_option
 
@@ -48,7 +48,7 @@ class Vegehints(commands.Cog):
                        options=[
                            create_option("flags", "Optional flags", str, False)
                        ])
-    async def vegehint(self, ctx: SlashContext, flags: str = ""):
+    async def vegehint(self, ctx: ApplicationContext, flags: str = ""):
         flags = convert_args(flags.split())
 
         if 'c' not in flags:

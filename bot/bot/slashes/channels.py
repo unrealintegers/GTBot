@@ -1,7 +1,7 @@
 import discord
 from datetime import datetime as dt
 from discord.ext import commands
-from discord_slash import SlashContext
+from discord_slash import ApplicationContext
 from discord_slash import cog_ext
 
 from .utils import BackupChannel
@@ -71,7 +71,7 @@ class ChannelSlash(commands.Cog):
                        name="createbotchannel",
                        description="Creates a new temporary bot channel.",
                        )
-    async def create_bot_channel(self, ctx: SlashContext):
+    async def create_bot_channel(self, ctx: ApplicationContext):
         bot_role = self.bot.Vege.get_role(827538975203262504)
         if bot_role not in ctx.author.roles and not \
                 ctx.author.guild_permissions.administrator:

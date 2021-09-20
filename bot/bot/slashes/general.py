@@ -1,23 +1,23 @@
-import aiocron
 import asyncio
 from collections import defaultdict
-from dateparser import parse as parsedate
 from datetime import datetime as dt
 from datetime import timedelta
+
+import aiocron
+from dateparser import parse as parsedate
+from discord import ApplicationContext, Option
 from discord import Member
-from discord.ext import commands
-from discord_slash import SlashContext
-from discord_slash import cog_ext
-from discord_slash.utils.manage_commands import create_option
+
+from ..bot import DiscordBot, SlashCommand
 
 
-class Reminder(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+class Reminder(SlashCommand, name="reminder"):
+    def __init__(self, bot: DiscordBot, guild_ids: list[int]):
+        super().__init__(bot, guild_ids)
 
         self.DATE_FORMAT = r"%d/%m/%Y %H:%M:%S"
 
-        self.bot.bot.add_cog(self)
+        self.bot.bot.slash_command(guild_ids=self.guild_ids)(self.reminder)
 
         self.update().start()
 
@@ -26,8 +26,8 @@ class Reminder(commands.Cog):
             await asyncio.sleep(time.total_seconds())
 
             if not (tup := self.bot.db.fetch(
-                "SELECT uid, message, link FROM reminders "
-                "WHERE id = %s", (reminder_id,)
+                    "SELECT uid, message, link FROM reminders "
+                    "WHERE id = %s", (reminder_id,)
             )):
                 return
 
@@ -42,35 +42,29 @@ class Reminder(commands.Cog):
 
         asyncio.create_task(_coro())
 
-    @cog_ext.cog_slash(
-        name="remind",
-        description="Reminds you about something.",
-        options=[
-            create_option("time", "When should the reminder be?",
-                          str, True),
-            create_option("message", "Message to include in the reminder.",
-                          str, False)
-        ]
-    )
-    async def reminder(self, ctx: SlashContext, time: str,
-                       message: str = 'something'):
-        time = parsedate('in ' + time)
+    async def reminder(
+            self, ctx: ApplicationContext,
+            time: Option(str, "time of reminder (can be duration)"),
+            message: Option(str, "message", required=False) = 'something'
+    ):
+        """Reminds you about something"""
+        remind_time = parsedate('in ' + time)
 
-        if time is None:
-            await ctx.send(f"`{ctx.kwargs['time']}` is not a valid time.\n"
-                           f"Example: `3h`, `08:05:00`, `07/09/2021 3pm`",
-                           hidden=True)
+        if remind_time is None:
+            await ctx.respond(f"`{time}` is not a valid time.\n"
+                              f"Example: `3h`, `08:05:00`, `07/09/2021 3pm`",
+                              ephemeral=True)
             return
 
-        delta = time - dt.now()
+        delta = remind_time - dt.now()
         if delta < timedelta(0):
-            await ctx.send(f"You can't make a reminder to the past!",
-                           hidden=True)
+            await ctx.respond(f"You can't make a reminder to the past!",
+                              ephemeral=True)
             return
 
         if len(message) > 199:
-            await ctx.send("Message length must not exceed 200 characters!",
-                           hidden=True)
+            await ctx.respond("Message length must not exceed 200 characters!",
+                              ephemeral=True)
             return
 
         await ctx.defer()
@@ -78,7 +72,7 @@ class Reminder(commands.Cog):
         reminder_id = self.bot.db.fetch("INSERT INTO reminders "
                                         "(uid, time, message, link) VALUES "
                                         "(%s, %s, %s, %s) RETURNING id",
-                                        (ctx.author_id, time, message,
+                                        (ctx.user.id, remind_time, message,
                                          ''))[0][0]
 
         # This does cause some potential overlap, but overlaps will happen
@@ -86,8 +80,8 @@ class Reminder(commands.Cog):
         if delta < timedelta(hours=1):
             await self.remind(reminder_id, delta)
 
-        await ctx.send(f"Your reminder for **{message}** has been set for "
-                       f"__{time.strftime(self.DATE_FORMAT)}__.")
+        await ctx.respond(f"Your reminder for **{message}** has been set for "
+                          f"__{time.strftime(self.DATE_FORMAT)}__.")
 
         self.bot.db.execute("UPDATE reminders SET link = %s WHERE id = %s",
                             (ctx.message.jump_url, reminder_id))
@@ -106,43 +100,30 @@ class Reminder(commands.Cog):
         return wrapper
 
 
-class Impersonation(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+class Impersonation(SlashCommand, name="impersonate"):
+    def __init__(self, bot: DiscordBot, guild_ids: list[int]):
+        super().__init__(bot, guild_ids)
 
         self.cooldowns = defaultdict(lambda: [dt.utcnow(), 3])
 
-        self.bot.bot.add_cog(self)
+        self.bot.bot.slash_command(guild_ids=self.guild_ids)(self.impersonate)
 
-    @cog_ext.cog_slash(
-        guild_ids=[],
-        name="impersonate",
-        description="Speaks on behalf of someone else. (Limit: 4/20min)",
-        options=[
-            create_option(
-                name='user',
-                description='Who',
-                option_type=Member,
-                required=True
-            ),
-            create_option(
-                name='message',
-                description='What',
-                option_type=str,
-                required=True
-            )
-        ]
-    )
-    async def impersonate(self, ctx: SlashContext, user: Member, message: str):
+    async def impersonate(
+            self, ctx: ApplicationContext,
+            user: Option(Member, "who to impersonate"),
+            message: Option(str, "message")
+    ):
+        """Speaks on behalf of someone else (Limit: 4/20min)"""
         td = dt.utcnow() - self.cooldowns[user][0]
         self.cooldowns[user][0] = dt.utcnow()
         self.cooldowns[user][1] += td.total_seconds() / 300
         self.cooldowns[user][1] = min(4, self.cooldowns[user][1])
 
-        if self.cooldowns[user][1] < 1 and ctx.author_id != 330509305663193091:
+        if self.cooldowns[user][1] < 1 and ctx.user.id != 330509305663193091:
             cd = (1 - self.cooldowns[user][1]) * 300
-            await ctx.send(f"This command is on cooldown for another {cd}s.",
-                           hidden=True)
+            await ctx.respond(
+                f"This command is on cooldown for another {cd}s.",
+                ephemeral=True)
             return
 
         self.cooldowns[user][1] -= 1
@@ -159,7 +140,7 @@ class Impersonation(commands.Cog):
         await webhook.send(
             content=message,
             username=user.display_name,
-            avatar_url=user.avatar_url
+            avatar_url=user.avatar.url
         )
 
-        await ctx.send("Done", hidden=True)
+        await ctx.respond("Done", ephemeral=True)
