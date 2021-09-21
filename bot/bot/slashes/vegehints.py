@@ -31,10 +31,10 @@ class Vegehints(SlashCommand, name="vegehint"):
     def __init__(self, bot: DiscordBot, guild_ids: list[int]):
         super().__init__(bot, guild_ids)
 
+        self.guild_ids = [762888327161708615]
         self.vegehints = []
 
-        self.bot.bot.slash_command(
-            guild_ids=[762888327161708615])(self.vegehint)
+        self.register(self.vegehint)
 
         if vege := self.bot.bot.get_guild(762888327161708615):
             asyncio.create_task(self.init_vegehints(vege))

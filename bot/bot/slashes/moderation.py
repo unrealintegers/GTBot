@@ -14,8 +14,7 @@ class Evaluate(SlashCommand, name="evaluate"):
 
         self.result = None
 
-        self.bot.bot.slash_command(
-            name="eval", guild_ids=self.guild_ids)(self._eval)
+        self.register(self._eval, name="eval")
 
     async def _eval(
             self, ctx: ApplicationContext,
@@ -102,7 +101,7 @@ class PurgeCommand(SlashCommand, name="purge"):
     def __init__(self, bot: DiscordBot, guild_ids: list[int]):
         super().__init__(bot, guild_ids)
 
-        self.bot.bot.slash_command(guild_ids=self.guild_ids)(self.purge)
+        self.register(self.purge)
 
     async def purge(
             self, ctx: ApplicationContext,

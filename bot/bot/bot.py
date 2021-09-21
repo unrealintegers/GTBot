@@ -22,6 +22,11 @@ class SlashCommand:
         else:
             cls.name = cls.__name__.lower()
 
+    def register(self, coro, *, name=None):
+        if not name:
+            name = coro.__name__
+        self.bot.bot.slash_command(guild_ids=self.guild_ids, name=name)(coro)
+
 
 class DiscordBot:
     def __init__(self, prefix: str):

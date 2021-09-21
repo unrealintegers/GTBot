@@ -13,7 +13,7 @@ class Stamina(SlashCommand, name="stamcalc"):
 
         self.DATE_FORMAT = r"%d/%m/%Y %H:%M:%S"
 
-        self.bot.bot.slash_command(guild_ids=self.guild_ids)(self.stamcalc)
+        self.register(self.stamcalc)
 
     async def stamcalc(
             self, ctx: ApplicationContext,
@@ -60,7 +60,7 @@ class WeekCheck(SlashCommand):
     def __init__(self, bot: DiscordBot, guild_ids: list[int]):
         super().__init__(bot, guild_ids)
 
-        self.bot.bot.slash_command(guild_ids=self.guild_ids)(self.weekcheck)
+        self.register(self.weekcheck)
 
     async def weekcheck(self, ctx: ApplicationContext):
         """Checks what week this is"""

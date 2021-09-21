@@ -13,7 +13,7 @@ class Impersonation(SlashCommand, name="impersonate"):
 
         self.cooldowns = defaultdict(lambda: [dt.utcnow(), 3])
 
-        self.bot.bot.slash_command(guild_ids=self.guild_ids)(self.impersonate)
+        self.register(self.impersonate)
 
     async def impersonate(
             self, ctx: ApplicationContext,

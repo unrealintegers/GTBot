@@ -96,3 +96,4 @@ class Reminder(SlashCommand, name="remind"):
                 await self.remind(*reminder)
 
         return wrapper
+
