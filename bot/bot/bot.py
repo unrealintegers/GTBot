@@ -20,8 +20,7 @@ class SlashCommand:
         if 'name' in kwargs:
             cls.name = kwargs['name']
         else:
-            raise ValueError("Subclasses of SlashCommand must "
-                             "define name attribute in constructor")
+            cls.name = cls.__name__.lower()
 
 
 class DiscordBot:

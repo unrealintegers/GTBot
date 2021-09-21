@@ -56,7 +56,7 @@ class Stamina(SlashCommand, name="stamcalc"):
                                   ephemeral=True)
 
 
-class WeekCheck(SlashCommand, name="weekcheck"):
+class WeekCheck(SlashCommand):
     def __init__(self, bot: DiscordBot, guild_ids: list[int]):
         super().__init__(bot, guild_ids)
 

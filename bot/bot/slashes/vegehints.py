@@ -27,7 +27,7 @@ class Vegehint:
         return Vegehint(embed.title, embed.description, embed_id)
 
 
-class Vegehints(SlashCommand):
+class Vegehints(SlashCommand, name="vegehint"):
     def __init__(self, bot: DiscordBot, guild_ids: list[int]):
         super().__init__(bot, guild_ids)
 

@@ -6,7 +6,7 @@ from discord.app import ApplicationContext, Option
 from ..bot import DiscordBot, SlashCommand
 
 
-class CoopSlash(SlashCommand, name="coop"):
+class Coop(SlashCommand):
     def __init__(self, bot: DiscordBot, guild_ids: list[int]):
         super().__init__(bot, guild_ids)
 
