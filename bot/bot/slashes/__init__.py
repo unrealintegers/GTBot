@@ -4,5 +4,5 @@ __all__ = (
     "general",
     "gtutil",
     "moderation",
-    # "vegehints"
+    "vegehints"
 )
