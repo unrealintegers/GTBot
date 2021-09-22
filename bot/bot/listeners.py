@@ -31,7 +31,6 @@ class Listeners:
 
     async def parse_option(self, opt, guild: typing.Optional[Guild]) \
             -> typing.Optional[str]:
-        print(opt)
         if opt['type'] == OptionType.user.value:
             if guild:
                 getters = (guild.get_member,)
@@ -129,7 +128,6 @@ class Listeners:
                 # Get the command's name
                 data = (interaction.data,)
                 cmd = '/'
-                print(data)
 
                 while 'name' in data[0] and 'options' in data[0]:
                     cmd += data[0]['name'] + ' '
