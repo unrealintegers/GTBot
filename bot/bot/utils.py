@@ -92,14 +92,6 @@ class DatabaseConnection:
         # [(3,), (11,), ..., (71,)] => [3, 11, ..., 71]
         return sum(map(list, self.cur.fetchall()), [])
 
-    def fetch_dict(self, keys, command, fields=None):
-        self.connect()
-        self.cur.execute(command, fields)
-
-        # [(3,), (11,), ..., (71,)] => [3, 11, ..., 71]
-        return [{y: x for (x, y) in zip(keys, row)}
-                for row in self.cur.fetchall()]
-
 
 class Hero:
     def __init__(self, hero_id, title, name, emoji_id):
