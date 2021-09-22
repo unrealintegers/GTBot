@@ -2,6 +2,7 @@ import asyncio
 import discord
 import psycopg2 as pg
 import urllib.parse as up
+from typing import DefaultDict, NamedTuple, List
 from collections import defaultdict, namedtuple
 from datetime import datetime as dt
 from psycopg2.extras import NamedTupleCursor
@@ -25,7 +26,8 @@ def convert_args(args):
     return tree
 
 
-def groupby(rows: list[namedtuple], field: str):
+def groupby(rows: List[NamedTuple], field: str) \
+        -> DefaultDict[str, List[NamedTuple]]:
     row = rows[0]
     fields = list(row._fields)
     fields.remove(field)
@@ -75,13 +77,15 @@ class DatabaseConnection:
         self.connect()
         self.cur.execute(command, fields)
 
-    def fetch(self, command, fields=None):
+    def fetch(self, command, fields=None) -> List[NamedTuple]:
         self.connect()
         self.cur.execute(command, fields)
 
         return self.cur.fetchall()
 
-    def fetch_flatten(self, command, fields=None):
+    def fetch_flatten(self, command, fields=None) -> List:
+        """Fetches and flattens to a single list,
+            must be a single column!"""
         self.connect()
         self.cur.execute(command, fields)
 
