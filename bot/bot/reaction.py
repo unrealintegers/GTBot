@@ -24,6 +24,7 @@ class ReactionListener(commands.Cog):
         elif event_type == 'REACTION_ADD':
             await member.add_roles(role, reason='Reaction')
 
+    # TODO: Should find a better way to do reaction roles
     async def handle_reaction(self, reaction):
         if reaction.message_id == 827542930327207936:
             if reaction.emoji.id == 826799810400354325:  # Co-op
@@ -32,6 +33,8 @@ class ReactionListener(commands.Cog):
                 await self.handle_role(reaction, 827538543144468491)
             elif reaction.emoji.id == 828562383378448384:  # EPIC Grinder
                 await self.handle_role(reaction, 827538975203262504)
+            elif reaction.emoji.id == 890922855427096616:  # Tavern Patreon
+                await self.handle_role(reaction, 890945202175483934)
         elif reaction.message_id == 854374759834976306:
             if reaction.emoji.name == '📰':  # Updates
                 await self.handle_role(reaction, 852729970525732885)
