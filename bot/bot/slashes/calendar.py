@@ -1,6 +1,8 @@
 import asyncio
 from datetime import datetime as dt
 from datetime import timedelta
+from enum import Enum
+from typing import List, NamedTuple
 
 import aiocron
 from dateparser import parse as parsedate
@@ -98,3 +100,132 @@ class Reminder(SlashCommand, name="remind"):
 
         return wrapper
 
+
+class RepeatDay(Enum):
+    NO_EVENT = '0'
+    NEW_EVENT = '+'
+    NEW_ROUND = '/'
+    ONGOING_ROUND = '-'
+
+
+class Event:
+    def __init__(self, name: str, start_time: dt,
+                 repeat: List[RepeatDay], unit_interval: timedelta,
+                 max_repeats: int, fmt: str,
+                 **_):  # discord extra kwargs
+        self.name = name
+        self.start_time = start_time
+        self.repeat = repeat
+        self.max_repeats = max_repeats
+
+        self._format = fmt
+
+        now = dt.now().astimezone()
+
+        # self.has_rounds = RepeatDay.NEW_ROUND in self.repeat
+        cycle_length = len(repeat)
+        interval = unit_interval * cycle_length
+
+        # Number of repeats since event started
+        self.repeats = (now - start_time) // interval
+        self.active = True
+        if self.repeats > self.max_repeats != -1:
+            self.active = False
+            return
+
+        # Start of current repeat
+        repeat_start = start_time + self.repeats * interval
+
+        # This is the index we want out of the repeat list
+        index = (now - repeat_start) // unit_interval
+        if repeat[index] is RepeatDay.NO_EVENT:
+            self.active = False
+            return
+
+        # We look for end of this round and cycle
+        self.round_end, self.cycle_end = None, None
+        for idx, day in list(enumerate(repeat))[index + 1:]:
+            if not self.cycle_end and day is RepeatDay.NO_EVENT:
+                self.cycle_end = idx
+            if not self.round_end and \
+                    (day is RepeatDay.NEW_ROUND or day is RepeatDay.NO_EVENT):
+                self.round_end = idx
+            if self.cycle_end and self.round_end:
+                break
+        self.round_end = self.round_end or index + 1
+        self.cycle_end = self.cycle_end or index + 1
+
+        # And now we look for start of this round and cycle
+        self.round_start, self.cycle_start = None, None
+        for idx, day in list(enumerate(repeat))[index - 1::-1]:
+            if not self.cycle_start and day is RepeatDay.NEW_EVENT:
+                self.cycle_start = idx
+            if not self.round_start and \
+                    (day is RepeatDay.NEW_ROUND or day is RepeatDay.NEW_EVENT):
+                self.round_start = idx
+            if self.cycle_start and self.round_start:
+                break
+
+        # Number of round
+        self.round_num = repeat[self.cycle_start:index + 1] \
+                             .count(RepeatDay.NEW_ROUND) + 1  # noqa
+        self.total_round = repeat[self.cycle_start:self.cycle_end + 1] \
+                               .count(RepeatDay.NEW_ROUND) + 1  # noqa
+
+        # Calculate current day and total length
+        self.cycle_day = index - self.cycle_start + 1
+        self.round_day = index - self.round_start + 1
+        self.cycle_length = self.cycle_end - self.cycle_start
+        self.round_length = self.round_end - self.round_start
+
+        # Convert back to datetime
+        self.round_start = repeat_start + unit_interval * self.round_start
+        self.round_end = repeat_start + unit_interval * self.round_end
+        self.cycle_start = repeat_start + unit_interval * self.cycle_start
+        self.cycle_end = repeat_start + unit_interval * self.cycle_end
+
+    def __str__(self):
+        formats = {
+            "n": self.name,
+            "rs": int(self.round_start.timestamp()),
+            "re": int(self.round_end.timestamp()),
+            "rd": self.round_day,
+            "rl": self.round_length,
+            "rn": self.round_num,
+            "rt": self.total_round,
+            "cs": int(self.cycle_start.timestamp()),
+            "ce": int(self.cycle_end.timestamp()),
+            "cd": self.cycle_day,
+            "cl": self.cycle_length
+        }
+        return self._format.format(**formats)
+
+    @staticmethod
+    def from_db(row: NamedTuple):
+        row = row._asdict()  # noqa, underscore method
+        row['repeat'] = list(map(RepeatDay, row['repeat']))
+        row['fmt'] = row['format']
+        del row['format']
+        return Event(**row)
+
+
+class Events(SlashCommand, name="events"):
+    def __init__(self, bot: DiscordBot, guild_ids: list[int]):
+        super().__init__(bot, guild_ids)
+
+        self.events = bot.bot.command_group(
+            "events", "No Description", guild_ids=self.guild_ids
+        )
+
+        self.events.command(guild_ids=self.guild_ids)(self.list)
+
+    async def list(self, ctx: ApplicationContext):
+        """Shows a list of events"""
+        await ctx.defer(ephemeral=True)
+
+        events = self.bot.db.fetch("SELECT * FROM events")
+
+        events = map(Event.from_db, events)
+        active_events = filter(lambda e: e.active, events)
+        events_str = '\n\n'.join(map(str, active_events))
+        await ctx.respond(events_str, ephemeral=True)
