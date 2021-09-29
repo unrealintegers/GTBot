@@ -31,7 +31,6 @@ class Vegehints(SlashCommand, name="vegehint"):
     def __init__(self, bot: DiscordBot, guild_ids: list[int]):
         super().__init__(bot, guild_ids)
 
-        self.guild_ids = [762888327161708615]
         self.vegehints = []
 
         self.register(self.vegehint)
