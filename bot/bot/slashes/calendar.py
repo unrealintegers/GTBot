@@ -15,7 +15,8 @@ class Reminder(SlashCommand, name="remind"):
 
         self.DATE_FORMAT = r"%d/%m/%Y %H:%M:%S"
 
-        self.bot.bot.slash_command(guild_ids=self.guild_ids)(self.reminder)
+        self.bot.bot.slash_command(name='remind',
+                                   guild_ids=self.guild_ids)(self.reminder)
 
         self.update().start()
 
