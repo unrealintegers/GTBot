@@ -81,11 +81,13 @@ class Reminder(SlashCommand, name="remind"):
         if delta < timedelta(hours=1):
             await self.remind(reminder_id, delta)
 
-        await ctx.respond(f"Your reminder for **{message}** has been set for "
-                          f"__{time.strftime(self.DATE_FORMAT)}__.")
+        response = await ctx.respond(
+            f"Your reminder for **{message}** has been set for "
+            f"__{remind_time.strftime(self.DATE_FORMAT)}__."
+        )
 
         self.bot.db.execute("UPDATE reminders SET link = %s WHERE id = %s",
-                            (ctx.message.jump_url, reminder_id))
+                            (response.jump_url, reminder_id))
 
     def update(self):
         @aiocron.crontab("0 * * * *")
