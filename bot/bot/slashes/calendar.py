@@ -27,16 +27,50 @@ class Reminder(SlashCommand, name="remind"):
             await asyncio.sleep(time.total_seconds())
 
             if not (tup := self.bot.db.fetch(
-                    "SELECT uid, message, link FROM reminders "
-                    "WHERE id = %s", (reminder_id,)
+                    "SELECT * FROM reminders WHERE id = %s",
+                    (reminder_id,)
             )):
                 return
 
-            uid, message, link = tup[0]
+            r = tup[0]
+            if r.repeats > 0:
+                next_time = r.time + r.repeat_interval
+                self.bot.db.execute(
+                    "INSERT INTO reminders "
+                    "(uid, time, message, link, repeats, repeat_interval) "
+                    "VALUES (%s, %s, %s, %s, %s, %s) ",
+                    (r.uid, next_time, r.message,
+                     r.link, r.repeats - 1, r.repeat_interval)
+                )
 
-            await self.bot.bot.get_user(uid).send(
-                f"<@{uid}> **REMINDER:** {message}\n\n Context: {link}"
-            )
+                await self.bot.bot.get_user(r.uid).send(
+                    f"<@{r.uid}> **REMINDER:** {r.message}\n\n"
+                    f"Context: {r.link}\n\n"
+                    f"Repeats Remaining: {r.repeats}\n"
+                    f"Next Reminder: <t:{int(next_time.timestamp())}>"
+                )
+
+            elif r.repeats == -1:
+                next_time = r.time + r.repeat_interval
+                self.bot.db.execute(
+                    "INSERT INTO reminders "
+                    "(uid, time, message, link, repeats, repeat_interval) "
+                    "VALUES (%s, %s, %s, %s, %s, %s) ",
+                    (r.uid, next_time, r.message,
+                     r.link, -1, r.repeat_interval)
+                )
+
+                await self.bot.bot.get_user(r.uid).send(
+                    f"<@{r.uid}> **REMINDER:** {r.message}\n\n"
+                    f"Context: {r.link}\n\n"
+                    f"Next Reminder: <t:{next_time.timestamp()}>"
+                )
+
+            else:
+                await self.bot.bot.get_user(r.uid).send(
+                    f"<@{r.uid}> **REMINDER:** {r.message}\n\n"
+                    f"Context: {r.link}"
+                )
 
             self.bot.db.execute("DELETE FROM reminders WHERE id = %s",
                                 (reminder_id,))
@@ -46,9 +80,19 @@ class Reminder(SlashCommand, name="remind"):
     async def reminder(
             self, ctx: ApplicationContext,
             time: Option(str, "time of reminder (can be duration)"),
-            message: Option(str, "message", required=False) = 'something'
+            message: Option(str, "message", required=False) = 'something',
+            repeats: Option(int, "-1 for infinity, defaults to 0",
+                            required=False) = 0,
+            interval: Option(str, "repeat interval, defaults tp reminder time",
+                             required=False) = None
     ):
         """Reminds you about something"""
+        repeat = (repeats == 0)
+
+        if repeat < -1:
+            await ctx.respond("Repeat has to be -1, 0 or a positive integer!",
+                              ephemeral=True)
+
         remind_time = parsedate('in ' + time)
 
         if remind_time is None:
@@ -59,7 +103,7 @@ class Reminder(SlashCommand, name="remind"):
 
         delta = remind_time - dt.now()
         if delta < timedelta(0):
-            await ctx.respond(f"You can't make a reminder to the past!",
+            await ctx.respond("You can't make a reminder to the past!",
                               ephemeral=True)
             return
 
@@ -70,11 +114,22 @@ class Reminder(SlashCommand, name="remind"):
 
         await ctx.defer()
 
-        reminder_id = self.bot.db.fetch("INSERT INTO reminders "
-                                        "(uid, time, message, link) VALUES "
-                                        "(%s, %s, %s, %s) RETURNING id",
-                                        (ctx.user.id, remind_time, message,
-                                         ''))[0][0]
+        if interval:
+            interval = parsedate("in " + interval) - dt.now()
+        else:
+            interval = delta
+
+        if interval < timedelta(hours=2):
+            await ctx.respond("Repeat interval has to be longer than 2h!",
+                              ephemeral=True)
+
+        reminder_id = self.bot.db.fetch(
+            "INSERT INTO reminders "
+            "(uid, time, message, link, repeats, repeat_interval) "
+            "VALUES (%s, %s, %s, %s, %s, %s) "
+            "RETURNING id",
+            (ctx.user.id, remind_time, message, '', repeats, interval)
+        )[0][0]
 
         # This does cause some potential overlap, but overlaps will happen
         # with bot restarts/reconnects
@@ -83,7 +138,7 @@ class Reminder(SlashCommand, name="remind"):
 
         response = await ctx.respond(
             f"Your reminder for **{message}** has been set for "
-            f"__{remind_time.strftime(self.DATE_FORMAT)}__."
+            f"<t:{int(remind_time.timestamp())}>."
         )
 
         self.bot.db.execute("UPDATE reminders SET link = %s WHERE id = %s",
