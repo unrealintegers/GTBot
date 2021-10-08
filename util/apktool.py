@@ -1,19 +1,11 @@
-import os
 import json
-import zipfile
+import os
+
 import UnityPy
 
-# pass name of zip as command line arg
-files = [f for f in os.listdir() if f.endswith('.xapk')]
+files = [f for f in os.listdir() if f.endswith('.apk')]
 
-if len(files) != 1:
-    print(f"found {len(files)} .xapk files!")
-    exit()
-
-with zipfile.ZipFile(files[0]) as z:
-    apk_name = z.extract("com.kakaogames.gdts.apk")
-
-env = UnityPy.load(apk_name)
+env = UnityPy.load(files[0])
 
 # grab the 2 relevant portrait files
 coord_raw = env.container['assets/spritesheets/story-portraits/portraits.json']
@@ -33,7 +25,7 @@ for hero, value in coords['frames'].items():
 
     # we ignore some "dummy" sprites
     if dx > 20 and dy > 20:
-        box = (x, y, x+dx, y+dy)
+        box = (x, y, x + dx, y + dy)
         portrait = image.crop(box)
 
         path = os.path.join("portraits", f"gtp_{hero}.png")
