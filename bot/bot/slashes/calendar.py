@@ -119,9 +119,10 @@ class Reminder(SlashCommand, name="remind"):
         else:
             interval = delta
 
-        if interval < timedelta(hours=2):
+        if repeat and interval < timedelta(hours=1, minutes=59):  # fp error
             await ctx.respond("Repeat interval has to be longer than 2h!",
                               ephemeral=True)
+            return
 
         reminder_id = self.bot.db.fetch(
             "INSERT INTO reminders "
