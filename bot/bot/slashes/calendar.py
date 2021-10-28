@@ -87,7 +87,7 @@ class Reminder(SlashCommand, name="remind"):
                              required=False) = None
     ):
         """Reminds you about something"""
-        repeat = (repeats == 0)
+        repeat = (repeats != 0)
 
         if repeat < -1:
             await ctx.respond("Repeat has to be -1, 0 or a positive integer!",
