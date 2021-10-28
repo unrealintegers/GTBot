@@ -1,6 +1,6 @@
 __all__ = (
-    # "channels",
     "calendar",
+    "channels",
     "coop",
     "general",
     "gtutil",

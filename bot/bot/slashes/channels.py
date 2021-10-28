@@ -1,24 +1,33 @@
-import discord
 from datetime import datetime as dt
-from discord.ext import commands
-from discord_slash import ApplicationContext
-from discord_slash import cog_ext
+from typing import List
 
-from .utils import BackupChannel
+import discord
+from discord import ApplicationContext
+
+from ..bot import DiscordBot, SlashCommand
+from ..utils import BackupChannel
 
 
-class ChannelSlash(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+class ChannelSlash(SlashCommand):
+    def __init__(self, bot: DiscordBot, guild_ids: List[int]):
+        super().__init__(bot, guild_ids)
 
-        self._backup = self.bot.Vege.get_channel(837963878725976085)
+        self.register(self.create_bot_channel)
+
+        self.vege = self.bot.bot.get_guild(762888327161708615)
+
+        if not self.vege:
+            return
+
+        # Category
+        self._backup = self.vege.get_channel(837963878725976085)
 
         _channels = [ch for ch in self._backup.channels if "bot" in ch.name]
 
-        everyone = self.bot.Vege.default_role
-        bot_role = self.bot.Vege.get_role(827538975203262504)
-        bot = self.bot.Vege.get_role(806083687866957884)
-        admin = self.bot.Vege.get_role(812998213543133204)
+        everyone = self.vege.default_role
+        bot_role = self.vege.get_role(827538975203262504)
+        bots = self.vege.get_role(806083687866957884)
+        admin = self.vege.get_role(812998213543133204)
         overwrites = {
             everyone: discord.PermissionOverwrite(
                 read_messages=False
@@ -26,7 +35,7 @@ class ChannelSlash(commands.Cog):
             bot_role: discord.PermissionOverwrite(
                 read_messages=True
             ),
-            bot: discord.PermissionOverwrite(
+            bots: discord.PermissionOverwrite(
                 read_messages=True
             ),
             admin: discord.PermissionOverwrite(
@@ -51,7 +60,7 @@ class ChannelSlash(commands.Cog):
         return None
 
     async def enable_next_channel(self, ctx):
-        self._users[ctx.author_id] = dt.utcnow()
+        self._users[ctx.user.id] = dt.utcnow()
         backup = self.get_next_channel()
 
         if not backup:
@@ -59,38 +68,36 @@ class ChannelSlash(commands.Cog):
 
         actives = list(filter(lambda b: b.active, self._backups))
         if not actives:
-            pos = [self.bot.Vege.get_channel(806834639675195422).position]
+            pos = [self.vege.get_channel(806834639675195422).position]
         else:
             pos = map(lambda b: b.channel.position, actives)
 
         await backup.enable(max(pos) + 1)
-        await backup.channel.send(f"<@{ctx.author_id}>")
+        await backup.channel.send(f"<@{ctx.user.id}>")
         return f"<#{backup.channel.id}> has been created for you."
 
-    @cog_ext.cog_slash(guild_ids=[762888327161708615],
-                       name="createbotchannel",
-                       description="Creates a new temporary bot channel.",
-                       )
     async def create_bot_channel(self, ctx: ApplicationContext):
-        bot_role = self.bot.Vege.get_role(827538975203262504)
-        if bot_role not in ctx.author.roles and not \
-                ctx.author.guild_permissions.administrator:
-            await ctx.send("You do not have permission to use this command!",
-                           hidden=True)
+        bot_role = self.vege.get_role(827538975203262504)
+        if bot_role not in ctx.user.roles and not \
+                ctx.user.guild_permissions.administrator:
+            await ctx.respond("You do not have permission "
+                              "to use this command!",
+                              ephemeral=True)
             return
 
-        if ctx.author_id in self._users:
-            cooldown = dt.utcnow() - self._users[ctx.author_id]
+        if ctx.user.id in self._users:
+            cooldown = dt.utcnow() - self._users[ctx.user.id]
             if cooldown.total_seconds() > 3600 or \
-                    ctx.author.guild_permissions.administrator:
+                    ctx.user.guild_permissions.administrator:
                 msg = await self.enable_next_channel(ctx)
-                await ctx.send(msg, hidden=True)
+                await ctx.respond(msg, ephemeral=True)
                 return
             else:
-                await ctx.send(f"This command is on cooldown for {cooldown}",
-                               hidden=True)
+                await ctx.respond(f"This command is on cooldown "
+                                  f"for {cooldown}",
+                                  ephemeral=True)
                 return
         else:
             msg = await self.enable_next_channel(ctx)
-            await ctx.send(msg, hidden=True)
+            await ctx.respond(msg, ephemeral=True)
             return
