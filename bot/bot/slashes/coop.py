@@ -7,7 +7,7 @@ from ..bot import DiscordBot, SlashCommand
 
 
 class Coop(SlashCommand):
-    def __init__(self, bot: DiscordBot, guild_ids: list[int]):
+    def __init__(self, bot: DiscordBot, guild_ids: List[int]):
         super().__init__(bot, guild_ids)
 
         self.coop = bot.bot.command_group(

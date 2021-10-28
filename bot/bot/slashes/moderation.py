@@ -1,7 +1,8 @@
 import io
+from typing import List
 
-from discord import File
 from discord import ApplicationContext, Option
+from discord import File
 from discord.ext.commands import RoleConverter, MemberConverter
 
 from ..bot import DiscordBot, SlashCommand
@@ -9,7 +10,7 @@ from ..utils import convert_args
 
 
 class Evaluate(SlashCommand, name="evaluate"):
-    def __init__(self, bot: DiscordBot, guild_ids: list[int]):
+    def __init__(self, bot: DiscordBot, guild_ids: List[int]):
         super().__init__(bot, guild_ids)
 
         self.result = None
@@ -98,7 +99,7 @@ class PurgeFlags:
 
 
 class PurgeCommand(SlashCommand, name="purge"):
-    def __init__(self, bot: DiscordBot, guild_ids: list[int]):
+    def __init__(self, bot: DiscordBot, guild_ids: List[int]):
         super().__init__(bot, guild_ids)
 
         self.register(self.purge)

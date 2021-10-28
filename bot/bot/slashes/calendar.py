@@ -2,7 +2,8 @@ import asyncio
 from datetime import datetime as dt
 from datetime import timedelta
 from enum import Enum
-from typing import List, NamedTuple
+from typing import List
+from typing import NamedTuple
 
 import aiocron
 from dateparser import parse as parsedate
@@ -12,7 +13,7 @@ from ..bot import DiscordBot, SlashCommand
 
 
 class Reminder(SlashCommand, name="remind"):
-    def __init__(self, bot: DiscordBot, guild_ids: list[int]):
+    def __init__(self, bot: DiscordBot, guild_ids: List[int]):
         super().__init__(bot, guild_ids)
 
         self.DATE_FORMAT = r"%d/%m/%Y %H:%M:%S"
@@ -268,7 +269,7 @@ class Event:
 
 
 class Events(SlashCommand, name="events"):
-    def __init__(self, bot: DiscordBot, guild_ids: list[int]):
+    def __init__(self, bot: DiscordBot, guild_ids: List[int]):
         super().__init__(bot, guild_ids)
 
         self.events = bot.bot.command_group(

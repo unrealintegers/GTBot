@@ -1,6 +1,7 @@
 import asyncio
 import codecs
 import random
+from typing import List
 
 from discord import ApplicationContext, Option
 from discord import Guild, Embed
@@ -29,7 +30,7 @@ class Vegehint:
 
 
 class Vegehints(SlashCommand, name="vegehint"):
-    def __init__(self, bot: DiscordBot, guild_ids: list[int]):
+    def __init__(self, bot: DiscordBot, guild_ids: List[int]):
         super().__init__(bot, guild_ids)
 
         self.vegehints = []

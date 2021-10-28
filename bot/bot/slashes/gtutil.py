@@ -1,5 +1,6 @@
 from datetime import datetime as dt
 from datetime import timedelta
+from typing import List
 
 from dateparser import parse as parsedate
 from discord import ApplicationContext, Option
@@ -8,7 +9,7 @@ from ..bot import DiscordBot, SlashCommand
 
 
 class Stamina(SlashCommand, name="stamcalc"):
-    def __init__(self, bot: DiscordBot, guild_ids: list[int]):
+    def __init__(self, bot: DiscordBot, guild_ids: List[int]):
         super().__init__(bot, guild_ids)
 
         self.DATE_FORMAT = r"%d/%m/%Y %H:%M:%S"
@@ -57,7 +58,7 @@ class Stamina(SlashCommand, name="stamcalc"):
 
 
 class WeekCheck(SlashCommand):
-    def __init__(self, bot: DiscordBot, guild_ids: list[int]):
+    def __init__(self, bot: DiscordBot, guild_ids: List[int]):
         super().__init__(bot, guild_ids)
 
         self.register(self.weekcheck)

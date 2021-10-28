@@ -1,5 +1,6 @@
 from collections import defaultdict
 from datetime import datetime as dt
+from typing import List
 
 from discord import ApplicationContext, Option
 from discord import Member
@@ -8,7 +9,7 @@ from ..bot import DiscordBot, SlashCommand
 
 
 class Impersonation(SlashCommand, name="impersonate"):
-    def __init__(self, bot: DiscordBot, guild_ids: list[int]):
+    def __init__(self, bot: DiscordBot, guild_ids: List[int]):
         super().__init__(bot, guild_ids)
 
         self.cooldowns = defaultdict(lambda: [dt.utcnow(), 3])

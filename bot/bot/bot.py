@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from typing import List
 
 import discord
 from discord.ext import commands
@@ -12,7 +13,7 @@ from .utils import DatabaseConnection, HeroMatcher
 
 
 class SlashCommand:
-    def __init__(self, bot: DiscordBot, guild_ids: list[int]):
+    def __init__(self, bot: DiscordBot, guild_ids: List[int]):
         self.bot = bot
         self.guild_ids = guild_ids
 
