@@ -2,7 +2,7 @@ from datetime import datetime as dt
 from datetime import timedelta
 
 from dateparser import parse as parsedate
-from discord.app import ApplicationContext, Option
+from discord import ApplicationContext, Option
 
 from ..bot import DiscordBot, SlashCommand
 

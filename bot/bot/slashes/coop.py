@@ -1,7 +1,7 @@
 import numpy as np
 import psycopg2 as pg
 from discord import Member, Embed
-from discord.app import ApplicationContext, Option
+from discord import ApplicationContext, Option
 
 from ..bot import DiscordBot, SlashCommand
 

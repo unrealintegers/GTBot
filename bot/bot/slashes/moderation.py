@@ -1,7 +1,7 @@
 import io
 
 from discord import File
-from discord.app import ApplicationContext, Option
+from discord import ApplicationContext, Option
 from discord.ext.commands import RoleConverter, MemberConverter
 
 from ..bot import DiscordBot, SlashCommand
