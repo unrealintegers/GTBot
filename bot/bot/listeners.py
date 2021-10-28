@@ -6,7 +6,7 @@ from datetime import datetime as dt
 from discord import HTTPException, Forbidden, NotFound
 from discord import Interaction, InteractionType
 from discord import Member, Embed, TextChannel, Message, Guild
-from discord.enums import OptionType
+from discord.enums import SlashCommandOptionType
 
 from .utils import discord_escape
 
@@ -31,25 +31,25 @@ class Listeners:
 
     async def parse_option(self, opt, guild: typing.Optional[Guild]) \
             -> typing.Optional[str]:
-        if opt['type'] == OptionType.user.value:
+        if opt['type'] == SlashCommandOptionType.user.value:
             if guild:
                 getters = (guild.get_member,)
                 fetchers = (guild.fetch_member,)
             else:
                 getters = (self.bot.bot.get_user,)
                 fetchers = (self.bot.bot.fetch_user,)
-        elif opt['type'] == OptionType.channel.value:
+        elif opt['type'] == SlashCommandOptionType.channel.value:
             getters = (guild.get_channel,)
             fetchers = (guild.fetch_channel,)
-        elif opt['type'] == OptionType.role.value:
+        elif opt['type'] == SlashCommandOptionType.role.value:
             getters = (guild.get_role,)
             fetchers = tuple()
-        elif opt['type'] == OptionType.mentionable.value:
+        elif opt['type'] == SlashCommandOptionType.mentionable.value:
             getters = (guild.get_member, guild.get_role)
             fetchers = (guild.fetch_member,)
-        elif opt['type'] in (OptionType.string.value,
-                             OptionType.integer.value,
-                             OptionType.boolean.value):
+        elif opt['type'] in (SlashCommandOptionType.string.value,
+                             SlashCommandOptionType.integer.value,
+                             SlashCommandOptionType.boolean.value):
             return f"`<{opt['name']} = {opt['value']}>`"
         else:
             return
@@ -134,7 +134,7 @@ class Listeners:
                     data = data[0]['options']
 
                 if data[0]['type'] in (OptionType.sub_command.value,
-                                       OptionType.sub_command_group.value):
+                                       SlashCommandOptionType.sub_command_group.value):
                     cmd += data[0]['name'] + ' '
 
                 # Get the arguments of the command
