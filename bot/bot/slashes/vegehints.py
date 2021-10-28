@@ -2,8 +2,9 @@ import asyncio
 import codecs
 import random
 
-from discord import Guild, Embed
 from discord import ApplicationContext, Option
+from discord import Guild, Embed
+
 from ..bot import DiscordBot, SlashCommand
 from ..utils import convert_args
 
@@ -16,8 +17,8 @@ class Vegehint:
 
     def to_embed(self):
         embed = Embed(title=self.name,
-                              description=self.desc,
-                              color=0x7bed24)
+                      description=self.desc,
+                      color=0x7bed24)
         embed.set_footer(text=f"Vegehint #{self.id}")
         return embed
 
