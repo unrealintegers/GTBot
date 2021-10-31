@@ -1,7 +1,9 @@
+from typing import List
+
 import numpy as np
 import psycopg2 as pg
-from discord import Member, Embed
 from discord import ApplicationContext, Option
+from discord import Member, Embed
 
 from ..bot import DiscordBot, SlashCommand
 
