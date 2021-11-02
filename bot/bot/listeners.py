@@ -72,7 +72,7 @@ class Listeners:
 
         async def wrapper(member: Member):
             # Auto-roles
-            if member.guild.id == 762888327161708615 and event == 'join':
+            if member.guild.id == 762888327161708615 and event == 'joined':
                 if member.id in [490756819401179138]:
                     await member.ban(delete_message_days=0)
                     return
