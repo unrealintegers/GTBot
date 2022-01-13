@@ -12,7 +12,7 @@ class Coop(SlashCommand):
     def __init__(self, bot: DiscordBot, guild_ids: List[int]):
         super().__init__(bot, guild_ids)
 
-        self.coop = bot.bot.command_group(
+        self.coop = bot.bot.create_group(
             "coop", "No Description", guild_ids=self.guild_ids
         )
 

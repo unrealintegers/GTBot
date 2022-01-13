@@ -66,7 +66,7 @@ class WordGameCommand(SlashCommand, name="word"):
     def __init__(self, bot: DiscordBot, guild_ids: List[int]):
         super().__init__(bot, guild_ids)
 
-        self.group = bot.bot.command_group(
+        self.group = bot.bot.create_group(
             "word", "No Description", guild_ids=self.guild_ids
         )
 

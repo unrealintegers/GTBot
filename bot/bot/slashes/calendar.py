@@ -272,7 +272,7 @@ class Events(SlashCommand, name="events"):
     def __init__(self, bot: DiscordBot, guild_ids: List[int]):
         super().__init__(bot, guild_ids)
 
-        self.events = bot.bot.command_group(
+        self.events = bot.bot.create_group(
             "events", "No Description", guild_ids=self.guild_ids
         )
 
