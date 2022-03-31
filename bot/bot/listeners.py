@@ -68,16 +68,22 @@ class Listeners:
         return self.log_guild.get_channel(cid)
 
     def member_action(self, event: str):
-        channel = self.get_channel(849870406945079297)
+        channels = {None: self.get_channel(849870406945079297),
+                    762888327161708615: self.bot.bot.get_guild(762888327161708615).get_channel(958876330567553054)}
 
         async def wrapper(member: Member):
             # Auto-roles
             if member.guild.id == 762888327161708615 and event == 'joined':
-                if member.id in [490756819401179138]:
-                    await member.ban(delete_message_days=0)
-                    return
-                await member.add_roles(
-                    member.guild.get_role(809270443029561354))
+                await member.add_roles(member.guild.get_role(809270443029561354))
+
+                dm = member.dm_channel or await member.create_dm()
+                embed = Embed(title="Welcome to Vege x Dollars",
+                              description="Whether you’re here to socialise or strategise, "
+                                          "there’s something here for you. "
+                                          "Check out our roles in <#822072596119945257> if you want to tailor your "
+                                          "experience here or just start up a conversation.",
+                              colour=0x9eef1b)
+                await dm.send(embed=embed)
 
             # Logging
             embed = Embed(colour=0x12ffc8,
@@ -88,7 +94,9 @@ class Listeners:
                                   f"{member.guild.name}.",
                              icon_url=member.avatar.url)
 
-            await channel.send(embed=embed)
+            for guild, channel in channels.items():
+                if guild is None or guild == member.guild.id:
+                    await channel.send(embed=embed)
 
         return wrapper
 
