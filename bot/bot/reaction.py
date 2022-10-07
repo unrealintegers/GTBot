@@ -35,6 +35,8 @@ class ReactionListener(commands.Cog):
                 await self.handle_role(reaction, 827538975203262504)
             elif reaction.emoji.id == 890922855427096616:  # Tavern Patreon
                 await self.handle_role(reaction, 890945202175483934)
+            elif reaction.emoji.id == 1010189820238245948:  # Tower of Fantasy
+                await self.handle_role(reaction, 989313071388430356)
         elif reaction.message_id == 854374759834976306:
             if reaction.emoji.name == '📰':  # Updates
                 await self.handle_role(reaction, 852729970525732885)
